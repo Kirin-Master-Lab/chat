@@ -1,4 +1,4 @@
-package com.chenliang.chat.aiservice;
+package com.chenliang.chat.listener;
 
 
 import dev.langchain4j.model.chat.listener.ChatModelErrorContext;

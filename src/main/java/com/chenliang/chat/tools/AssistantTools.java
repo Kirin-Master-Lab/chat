@@ -1,4 +1,4 @@
-package com.chenliang.chat.aiservice;
+package com.chenliang.chat.tools;
 
 import dev.langchain4j.agent.tool.Tool;
 import io.micrometer.observation.annotation.Observed;

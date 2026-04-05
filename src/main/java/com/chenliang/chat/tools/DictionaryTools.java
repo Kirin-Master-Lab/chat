@@ -1,5 +1,6 @@
-package com.chenliang.chat.aiservice.dict;
+package com.chenliang.chat.tools;
 
+import com.chenliang.chat.aiservice.dict.DictionaryConfig;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import lombok.extern.slf4j.Slf4j;
@@ -28,29 +29,19 @@ public class DictionaryTools {
         this.restTemplate = restTemplate;
     }
 
-    /**
-     * 保存字典主项信息。
-     * 
-     * @param dictCode    字典编码，建议使用英文或拼音缩写
-     * @param dictName    字典名称，中文描述
-     * @param description 字典的功能详细描述
-     * @return 接口返回的结果字符串
-     */
     @Tool("新增字典主项接口。当你识别到用户想要创建、新增或定义一个新的字典分类/主项时，请调用此工具。你需要根据用户的意图，自动推导出合适的 dictCode (英文编码)、dictName (中文名称) 和 description (详细描述)。")
     public String saveDictInfo(
             @P("字典主项编码 (例如: vehicle_brand, color_type)") String dictCode,
             @P("字典主项名称 (例如: 车辆品牌, 颜色类型)") String dictName,
             @P("字典主项的详细描述") String description) {
         
-        log.info("开始调用接口保存字典主项: code={}, name={}", dictCode, dictName);
+        log.info("【工具调用】开始保存字典主项 -> dictCode: {}, dictName: {}, description: {}", dictCode, dictName, description);
 
         try {
-            // 构造请求头
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", dictionaryConfig.getAuthorization());
 
-            // 构造请求体
             Map<String, String> requestBody = new HashMap<>();
             requestBody.put("dictCode", dictCode);
             requestBody.put("dictName", dictName);
@@ -58,15 +49,19 @@ public class DictionaryTools {
 
             HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
 
-            // 发送请求
-            String response = restTemplate.postForObject(dictionaryConfig.getSaveUrl(), entity, String.class);
-            
+            // 使用 Map.class 接收响应以便解析业务状态码
+            Map<String, Object> response = restTemplate.postForObject(dictionaryConfig.getSaveUrl(), entity, Map.class);
             log.info("接口返回结果: {}", response);
-            return "成功调用新增字典主项接口。接口原始响应如下: " + response;
+
+            if (response != null && Integer.valueOf(10000).equals(response.get("code"))) {
+                return "【SUCCESS】字典主项已成功创建。接口响应: " + response;
+            } else {
+                return "【API 调用失败】新增字典主项失败。接口返回 JSON: " + (response != null ? response.toString() : "null");
+            }
             
         } catch (Exception e) {
-            log.error("调用字典保存接口失败", e);
-            return "调用新增字典主项接口失败，错误信息: " + e.getMessage();
+            log.error("调用字典保存接口抛出异常", e);
+            return "【API 调用异常】系统由于代码或网络问题未能成功调用接口: " + e.getMessage();
         }
     }
 
@@ -90,14 +85,13 @@ public class DictionaryTools {
             @P("英文名称或值") String enUS,
             @P("排序号") Integer itemSort) {
 
-        log.info("开始调用接口保存字典子项: dictCode={}, itemCode={}, zhCN={}", dictCode, itemCode, zhCN);
+        log.info("【工具调用】开始保存字典子项 -> dictCode: {}, itemCode: {}, zhCN: {}, itemSort: {}", dictCode, itemCode, zhCN, itemSort);
 
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", dictionaryConfig.getAuthorization());
 
-            // 构造请求体
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("dictCode", dictCode);
             requestBody.put("itemCode", itemCode);
@@ -105,19 +99,23 @@ public class DictionaryTools {
             requestBody.put("en-US", enUS);
             requestBody.put("itemSort", itemSort.toString());
             requestBody.put("styleColor", "");
-            // 拼接语言包数据格式
             requestBody.put("languageData", String.format("zh-CN|%s&en-US|%s", zhCN, enUS));
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-            String response = restTemplate.postForObject(dictionaryConfig.getItemSaveUrl(), entity, String.class);
-
+            // 解析响应 Map
+            Map<String, Object> response = restTemplate.postForObject(dictionaryConfig.getItemSaveUrl(), entity, Map.class);
             log.info("子项接口返回结果: {}", response);
-            return "成功调用新增字典子项 [" + zhCN + "]。接口响应: " + response;
+
+            if (response != null && Integer.valueOf(10000).equals(response.get("code"))) {
+                return "【SUCCESS】子项 [" + zhCN + "] 已成功保存。接口响应: " + response;
+            } else {
+                return "【API 调用失败】保存子项 [" + zhCN + "] 失败。接口返回 JSON: " + (response != null ? response.toString() : "null");
+            }
 
         } catch (Exception e) {
-            log.error("调用字典子项保存接口失败", e);
-            return "调用新增字典子项 [" + zhCN + "] 失败: " + e.getMessage();
+            log.error("调用字典子项保存接口抛出异常", e);
+            return "【API 调用异常】保存子项 [" + zhCN + "] 时发生网络或系统错误: " + e.getMessage();
         }
     }
 }

@@ -1,6 +1,8 @@
-package com.chenliang.chat.aiservice.persistence;
+package com.chenliang.chat.config;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.chenliang.chat.entity.ChatMemoryEntity;
+import com.chenliang.chat.mapper.ChatMemoryMapper;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.ChatMessageDeserializer;
 import dev.langchain4j.data.message.ChatMessageSerializer;

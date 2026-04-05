@@ -1,4 +1,4 @@
-package com.chenliang.chat.aiservice.persistence;
+package com.chenliang.chat.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

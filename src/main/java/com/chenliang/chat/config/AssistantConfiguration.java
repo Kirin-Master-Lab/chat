@@ -1,7 +1,9 @@
-package com.chenliang.chat.aiservice;
+package com.chenliang.chat.config;
 
+import com.chenliang.chat.aiservice.Assistant;
+import com.chenliang.chat.listener.MyChatModelListener;
+import com.chenliang.chat.aiservice.StreamingAssistant;
 import com.chenliang.chat.lowlevel.ChatModelController;
-import com.chenliang.chat.aiservice.persistence.CustomChatMemoryStore;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;

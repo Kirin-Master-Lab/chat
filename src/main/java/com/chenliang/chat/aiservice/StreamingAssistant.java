@@ -10,8 +10,9 @@ import reactor.core.publisher.Flux;
  * 声明式流式 AI 助手服务接口。
  * 使用 LangChain4j 的 {@link AiService} 注解，提供异步流式响应能力。
  * 适合在 Web 端实现逐字显示的打字机效果。
+ * 显式挂载 DictionaryTools 以支持字典管理。
  */
-@AiService
+@AiService(tools = "dictionaryTools")
 public interface StreamingAssistant {
 
     /**

@@ -1,6 +1,7 @@
-package com.chenliang.chat.aiservice.persistence;
+package com.chenliang.chat.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.chenliang.chat.entity.ChatMemoryEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

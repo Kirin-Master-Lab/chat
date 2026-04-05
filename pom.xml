@@ -120,6 +120,12 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Redis 状态存储 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

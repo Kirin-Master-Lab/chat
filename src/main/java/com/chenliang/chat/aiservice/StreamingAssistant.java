@@ -1,6 +1,8 @@
 package com.chenliang.chat.aiservice;
 
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
+import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.spring.AiService;
 import reactor.core.publisher.Flux;
 
@@ -16,9 +18,10 @@ public interface StreamingAssistant {
      * 发送用户消息并以响应式流的形式获取 AI 的回复。
      * 配置了系统消息引导 AI 的语气。
      * 
+     * @param userId 用户唯一标识，用于区分对话上下文 (会话隔离)
      * @param userMessage 用户输入的文本
      * @return 包含 AI 生成文本片段的异步流 (Flux)
      */
-    @SystemMessage("You are a polite assistant")
-    Flux<String> chat(String userMessage);
+    @SystemMessage("你是一个公司业务助手，请用专业且礼貌的态度回答问题。")
+    Flux<String> chat(@MemoryId String userId, @UserMessage String userMessage);
 }

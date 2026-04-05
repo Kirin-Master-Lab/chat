@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公司业务 AI 助手 - 聊天终端</title>
+    
+    <!-- 引入 Google 字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- 引入代码高亮样式 (Github 主题) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #4A90E2;    /* 活力蓝 */
+            --secondary-color: #F5A623;  /* 阳光橘 */
+            --bg-color: #F0F4F8;         /* 背景淡灰蓝 */
+            --text-color: #2C3E50;       /* 主文本色 */
+            --ai-bubble-bg: #FFFFFF;     /* AI 气泡白 */
+            --user-bubble-bg: #4A90E2;   /* 用户气泡蓝 */
+            --header-bg: rgba(255, 255, 255, 0.8);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 顶部导航栏 - 玻璃拟态设计 */
+        header {
+            padding: 15px 30px;
+            background: var(--header-bg);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        header .logo {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        header .logo .dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--secondary-color);
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        /* UserId 输入区域 */
+        .user-auth {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-auth input {
+            padding: 8px 15px;
+            border: 1px solid #D1D8E0;
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+
+        .user-auth input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .user-auth span {
+            font-size: 12px;
+            color: #7F8C8D;
+        }
+
+        /* 聊天消息区域 */
+        #chat-container {
+            flex: 1;
+            padding: 20px 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 80%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .message.ai {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+
+        .bubble {
+            padding: 12px 18px;
+            border-radius: 15px;
+            font-size: 15px;
+            line-height: 1.5;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .user .bubble {
+            background-color: var(--user-bubble-bg);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .ai .bubble {
+            background-color: var(--ai-bubble-bg);
+            color: var(--text-color);
+            border-bottom-left-radius: 2px;
+            border: 1px solid #E1E8EE;
+        }
+
+        /* Markdown 解析内部样式 */
+        .bubble pre {
+            background: #F8F9FA;
+            padding: 10px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+            border: 1px solid #EDF2F7;
+        }
+
+        .bubble p {
+            margin-bottom: 8px;
+        }
+
+        .bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 底部输入框 */
+        .input-area {
+            padding: 20px 30px;
+            background: white;
+            border-top: 1px solid #E1E8EE;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        #message-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 1px solid #D1D8E0;
+            border-radius: 25px;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        #message-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        #message-input:disabled {
+            background-color: #F8F9FA;
+            cursor: not-allowed;
+        }
+
+        #send-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        #send-btn:hover:not(:disabled) {
+            background-color: #357ABD;
+            transform: scale(1.05);
+        }
+
+        #send-btn:disabled {
+            background-color: #BDC3C7;
+            cursor: not-allowed;
+        }
+
+        #send-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        /* 打字动画效果 */
+        .typing {
+            display: inline-block;
+            width: 10px;
+            height: 4px;
+            background-color: var(--primary-color);
+            animation: blink 1s infinite alternate;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #CBD5E0;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <div class="dot"></div>
+            AI Helper
+        </div>
+        <div class="user-auth">
+            <span>UserId:</span>
+            <input type="text" id="userId" placeholder="请输入工号/ID以开始" value="user123">
+        </div>
+    </header>
+
+    <div id="chat-container">
+        <div class="message ai">
+            <div class="bubble">
+                您好！我是您的业务 AI 助手。请在上方输入 <strong>UserId</strong>，然后开始提问吧。✨
+            </div>
+        </div>
+    </div>
+
+    <form class="input-area" id="chat-form">
+        <input type="text" id="message-input" placeholder="输入您的问题..." autocomplete="off">
+        <button type="submit" id="send-btn" title="发送">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+    </form>
+
+    <!-- 脚本引入 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <script>
+        // 配置 marked 使用 highlight.js
+        marked.setOptions({
+            highlight: function(code, lang) {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                return hljs.highlight(code, { language }).value;
+            },
+            langPrefix: 'hljs language-'
+        });
+
+        const chatContainer = document.getElementById('chat-container');
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+        const userIdInput = document.getElementById('userId');
+        const sendBtn = document.getElementById('send-btn');
+
+        // 核心校验逻辑：如果没有 UserId，则置灰输入框和发送按钮
+        function validateUserId() {
+            const userId = userIdInput.value.trim();
+            const isValid = userId.length > 0;
+            messageInput.disabled = !isValid;
+            sendBtn.disabled = !isValid;
+            if(!isValid) {
+                messageInput.placeholder = "请先输入 UserId";
+            } else {
+                messageInput.placeholder = "输入您的问题...";
+            }
+        }
+
+        userIdInput.addEventListener('input', validateUserId);
+        validateUserId(); // 初始化执行一次
+
+        // 添加消息到界面
+        function appendMessage(role, text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${role}`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            
+            if (role === 'ai') {
+                // AI 消息初始化时包含打字机光标
+                bubble.innerHTML = marked.parse(text) + '<span class="typing"></span>';
+            } else {
+                bubble.textContent = text;
+            }
+            
+            msgDiv.appendChild(bubble);
+            chatContainer.appendChild(msgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return bubble;
+        }
+
+        // 发送消息并获取流式响应
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            const userId = userIdInput.value.trim();
+
+            if (!message || !userId) return;
+
+            // 1. 添加用户消息
+            appendMessage('user', message);
+            messageInput.value = '';
+
+            // 2. 创建一个空的 AI 气泡用于接收流
+            const aiBubble = appendMessage('ai', '...');
+            let fullText = '';
+
+            try {
+                // 3. 开始 SSE 请求
+                const url = `/streamingAssistant?userId=${encodeURIComponent(userId)}&message=${encodeURIComponent(message)}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) throw new Error('网络异常');
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                aiBubble.innerHTML = ''; // 清除初始加载态
+                let buffer = ''; // 引入缓冲区处理分片数据
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    // 将新读取的数据块放入缓冲区
+                    buffer += decoder.decode(value, { stream: true });
+                    
+                    // 按照换行符拆分，注意最后一行可能是不完整的
+                    let lines = buffer.split('\n');
+                    buffer = lines.pop(); // 弹出最后一行留给下一次循环拼接
+                    
+                    for (const line of lines) {
+                        const trimmedLine = line.trim();
+                        if (trimmedLine.startsWith('data:')) {
+                            // 提取 data: 之后的所有内容 (包括开头的空格)
+                            const data = line.replace(/^data: ?/, '');
+                            fullText += data;
+                            
+                            // 实时更新 Markdown 渲染
+                            aiBubble.innerHTML = marked.parse(fullText) + '<span class="typing"></span>';
+                            chatContainer.scrollTop = chatContainer.scrollHeight;
+                        }
+                    }
+                }
+                
+                // 处理最后可能剩余的缓冲区内容
+                if (buffer.startsWith('data:')) {
+                    fullText += buffer.replace(/^data: ?/, '');
+                    aiBubble.innerHTML = marked.parse(fullText);
+                }
+                
+                // 结束打字机动画
+                const cursor = aiBubble.querySelector('.typing');
+                if (cursor) cursor.remove();
+
+            } catch (err) {
+                console.error(err);
+                aiBubble.innerHTML = `<span style="color:red">出错了: ${err.message}</span>`;
+            }
+        });
+    </script>
+</body>
+</html>

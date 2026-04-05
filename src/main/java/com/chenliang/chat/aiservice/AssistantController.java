@@ -32,24 +32,29 @@ public class AssistantController {
      * 同步聊天端点。
      * 调用 AI 模型，直到生成完整回复后一次性返回。
      * 
-     * @param message 用户消息，默认为查询当前时间
+     * @param userId 用户唯一标识，用于区分对话上下文
+     * @param message 用户消息，默认为基础问候
      * @return AI 的完整回复文本
      */
     @GetMapping("/assistant")
-    public String assistant(@RequestParam(value = "message", defaultValue = "What is the current time?") String message) {
-        return assistant.chat(message);
+    public String assistant(
+            @RequestParam(value = "userId", defaultValue = "user123") String userId,
+            @RequestParam(value = "message", defaultValue = "你好") String message) {
+        return assistant.chat(userId, message);
     }
 
     /**
      * 流式聊天端点。
      * 采用 SSE (Server-Sent Events) 技术，随着模型生成实时推送文本片段。
      * 
-     * @param message 用户消息，默认为查询当前时间
+     * @param userId 用户唯一标识，用于区分对话上下文
+     * @param message 用户消息，默认为基础问候
      * @return 响应式文本片段流
      */
     @GetMapping(value = "/streamingAssistant", produces = TEXT_EVENT_STREAM_VALUE)
     public Flux<String> streamingAssistant(
-            @RequestParam(value = "message", defaultValue = "What is the current time?") String message) {
-        return streamingAssistant.chat(message);
+            @RequestParam(value = "userId", defaultValue = "user123") String userId,
+            @RequestParam(value = "message", defaultValue = "你好") String message) {
+        return streamingAssistant.chat(userId, message);
     }
 }

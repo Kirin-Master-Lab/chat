@@ -1,5 +1,6 @@
 package com.chenliang.chat;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -8,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * 基于 Spring Boot 框架，集成了 LangChain4j 以提供 AI 服务能力。
  */
 @SpringBootApplication
+@MapperScan("com.chenliang.chat.aiservice.persistence")
 public class ChatApplication {
 
     /**

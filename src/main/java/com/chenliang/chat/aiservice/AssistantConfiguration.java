@@ -1,16 +1,14 @@
 package com.chenliang.chat.aiservice;
 
 import com.chenliang.chat.lowlevel.ChatModelController;
-import dev.langchain4j.memory.ChatMemory;
+import com.chenliang.chat.aiservice.persistence.CustomChatMemoryStore;
+import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.listener.ChatModelListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
-
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 
 /**
  * AI 助手配置类。
@@ -20,19 +18,21 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 public class AssistantConfiguration {
 
     /**
-     * 定义聊天记忆组件。
-     * 该组件将被 {@link Assistant} 和 {@link StreamingAssistant} 自动使用。
+     * 定义聊天记忆提供者。
+     * 该组件将为每个不同的 memoryId (即 userId) 提供一个独立的聊天记忆实例。
      * <p>
-     * 使用 {@code SCOPE_PROTOTYPE} (多例模式) 是为了确保每次注入时都会创建一个新的实例。
-     * 这是实现用户隔离对话（基于 userId）的关键，
-     * 每次调用 AI Service 时，LangChain4j 会根据当前会话需求获取一个新的 ChatMemory 实例。
+     * 通过关联 {@link CustomChatMemoryStore}，实现了对话记忆持久化到 MySQL。
      *
-     * @return 默认使用消息窗口聊天记忆，保存最近 10 条消息以维护对话上下文。
+     * @param customChatMemoryStore 自定义的持久化存储组件
+     * @return 聊天记忆提供者，默认保存最近 10 条消息以维护对话上下文。
      */
     @Bean
-    @Scope(SCOPE_PROTOTYPE)
-    ChatMemory chatMemory() {
-        return MessageWindowChatMemory.withMaxMessages(10);
+    ChatMemoryProvider chatMemoryProvider(CustomChatMemoryStore customChatMemoryStore) {
+        return memoryId -> MessageWindowChatMemory.builder()
+                .id(memoryId)
+                .maxMessages(10)
+                .chatMemoryStore(customChatMemoryStore)
+                .build();
     }
 
     /**

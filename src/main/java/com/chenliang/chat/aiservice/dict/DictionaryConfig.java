@@ -22,4 +22,9 @@ public class DictionaryConfig {
      * 接口调用所需的 Authorization Token。
      */
     private String authorization;
+
+    /**
+     * 保存从 application.properties 读取的子项接口 URL。
+     */
+    private String itemSaveUrl;
 }

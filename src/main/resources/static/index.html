@@ -150,6 +150,29 @@
             border: 1px solid #EDF2F7;
         }
 
+        .ai .bubble table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid #E1E8EE;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .ai .bubble th, .ai .bubble td {
+            border: 1px solid #E1E8EE;
+            padding: 10px 14px;
+            text-align: left;
+        }
+        .ai .bubble th {
+            background-color: #F8F9FA;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        .ai .bubble tr:nth-child(even) {
+            background-color: #FAFBFC;
+        }
+
         .bubble p {
             margin-bottom: 8px;
         }
@@ -252,15 +275,15 @@
             AI Helper
         </div>
         <div class="user-auth">
-            <span>UserId:</span>
-            <input type="text" id="userId" placeholder="请输入工号/ID以开始" value="user123">
+            <span>用户名称:</span>
+            <input type="text" id="userId" placeholder="请输入您的姓名以开始" value="陈亮">
         </div>
     </header>
 
     <div id="chat-container">
         <div class="message ai">
             <div class="bubble">
-                您好！我是您的业务 AI 助手。请在上方输入 <strong>UserId</strong>，然后开始提问吧。✨
+                您好！我是您的业务 AI 助手。请在上方输入 <strong>用户名称</strong>，然后开始提问吧。✨
             </div>
         </div>
     </div>
@@ -350,52 +373,59 @@
                 const url = `/streamingAssistant?userId=${encodeURIComponent(userId)}&message=${encodeURIComponent(message)}`;
                 const response = await fetch(url);
                 
-                if (!response.ok) throw new Error('网络异常');
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || '网络异常或后端服务未就绪');
+                }
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 
-                aiBubble.innerHTML = ''; // 清除初始加载态
-                let buffer = ''; // 引入缓冲区处理分片数据
+                aiBubble.innerHTML = ''; 
+                let buffer = ''; 
+                let hasData = false;
 
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
                     
-                    // 将新读取的数据块放入缓冲区
+                    hasData = true;
                     buffer += decoder.decode(value, { stream: true });
-                    
-                    // 按照换行符拆分，注意最后一行可能是不完整的
                     let lines = buffer.split('\n');
-                    buffer = lines.pop(); // 弹出最后一行留给下一次循环拼接
+                    buffer = lines.pop(); 
                     
                     for (const line of lines) {
                         const trimmedLine = line.trim();
                         if (trimmedLine.startsWith('data:')) {
-                            // 提取 data: 之后的所有内容 (包括开头的空格)
                             const data = line.replace(/^data: ?/, '');
-                            fullText += data;
-                            
-                            // 实时更新 Markdown 渲染
+                            // 关键修复：补回被 split 掉的换行符。
+                            // 只有带有换行符，marked.js 才能正确识别 Markdown 表格。
+                            fullText += data + '\n';
                             aiBubble.innerHTML = marked.parse(fullText) + '<span class="typing"></span>';
                             chatContainer.scrollTop = chatContainer.scrollHeight;
                         }
                     }
                 }
                 
-                // 处理最后可能剩余的缓冲区内容
                 if (buffer.startsWith('data:')) {
+                    hasData = true;
                     fullText += buffer.replace(/^data: ?/, '');
                     aiBubble.innerHTML = marked.parse(fullText);
                 }
+
+                if (!hasData && fullText === '') {
+                    aiBubble.innerHTML = `<span style="color:orange">AI 未返回任何有效数据，可能是业务场景识别失败或模型逻辑冲突。请尝试重新发送。</span>`;
+                }
                 
-                // 结束打字机动画
                 const cursor = aiBubble.querySelector('.typing');
                 if (cursor) cursor.remove();
 
             } catch (err) {
                 console.error(err);
-                aiBubble.innerHTML = `<span style="color:red">出错了: ${err.message}</span>`;
+                aiBubble.innerHTML = `<div style="padding:10px; border-left:4px solid #e74c3c; background:#fdf2f2; color:#c0392b; border-radius:4px;">
+                    <strong>请求失败:</strong> ${err.message}<br/>
+                    <small style="opacity:0.7">请检查后端服务是否正在运行或 Session 是否已失效。</small>
+                </div>`;
             }
         });
     </script>

@@ -14,12 +14,12 @@ public interface Assistant {
 
     /**
      * 发送用户消息并获取 AI 的回复。
-     * 配置了系统消息引导 AI 的语气。
      * 
-     * @param userId 用户唯一标识，用于区分对话上下文 (会话隔离)
-     * @param userMessage 用户输入的文本
+     * @param userId        用户唯一标识，用于区分对话上下文 (会话隔离)
+     * @param systemMessage 动态系统提示词
+     * @param userMessage   用户输入的文本
      * @return AI 生成的响应文本
      */
-    @SystemMessage("你是一个公司业务助手，请用专业且礼貌的态度回答问题。")
-    String chat(@MemoryId String userId, String userMessage);
+    @SystemMessage("{{systemMessage}}")
+    String chat(@MemoryId String userId, @dev.langchain4j.service.V("systemMessage") String systemMessage, String userMessage);
 }

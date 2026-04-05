@@ -30,6 +30,7 @@ public class ChatMemoryEntity {
     /**
      * 序列化后的消息 JSON 内容。
      * 存储 LangChain4j 的 ChatMessage 列表。
+     * 配置maxMessages(10)是10, 这里的json数据的长度就是10
      */
     private String messageJson;
 

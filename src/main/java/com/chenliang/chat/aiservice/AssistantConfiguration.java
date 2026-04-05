@@ -9,6 +9,7 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.listener.ChatModelListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * AI 助手配置类。
@@ -16,6 +17,16 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class AssistantConfiguration {
+
+    /**
+     * 定义 RestTemplate Bean，用于发送 HTTP 请求。
+     * 
+     * @return 默认的 RestTemplate 实例
+     */
+    @Bean
+    RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
     /**
      * 定义聊天记忆提供者。

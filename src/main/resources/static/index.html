@@ -3,23 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>公司业务 AI 助手 - 聊天终端</title>
+    <title>公司业务 AI 助手 - 极智终端</title>
     
     <!-- 引入 Google 字体 -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     
-    <!-- 引入代码高亮样式 (Github 主题) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <!-- 引入代码高亮样式 (Tokyonight Dark 主题) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyonight-dark.min.css">
     
     <style>
         :root {
-            --primary-color: #4A90E2;    /* 活力蓝 */
-            --secondary-color: #F5A623;  /* 阳光橘 */
-            --bg-color: #F0F4F8;         /* 背景淡灰蓝 */
-            --text-color: #2C3E50;       /* 主文本色 */
-            --ai-bubble-bg: #FFFFFF;     /* AI 气泡白 */
-            --user-bubble-bg: #4A90E2;   /* 用户气泡蓝 */
-            --header-bg: rgba(255, 255, 255, 0.8);
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.5);
+            --secondary: #a855f7;
+            --accent: #38bdf8;
+            --bg-dark: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --user-gradient: linear-gradient(135deg, #6366f1, #a855f7);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         * {
@@ -29,278 +32,372 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            height: 100vh;
             overflow: hidden;
+            position: relative;
         }
 
-        /* 顶部导航栏 - 玻璃拟态设计 */
+        /* 动态背景光效 */
+        .bg-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.15) 0%, transparent 40%);
+            animation: pulseBg 15s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseBg {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+
+        /* 顶部装饰条 */
+        .top-bar {
+            height: 4px;
+            background: var(--user-gradient);
+            width: 100%;
+            position: fixed;
+            top: 0;
+            z-index: 1001;
+        }
+
         header {
-            padding: 15px 30px;
-            background: var(--header-bg);
-            backdrop-filter: blur(10px);
+            padding: 20px 40px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            z-index: 100;
+            z-index: 1000;
         }
 
         header .logo {
-            font-size: 1.2rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
             font-weight: 600;
-            color: var(--primary-color);
+            letter-spacing: -0.5px;
+            background: var(--user-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
+            gap: 12px;
         }
 
-        header .logo .dot {
-            width: 8px;
-            height: 8px;
-            background-color: var(--secondary-color);
-            border-radius: 50%;
-            margin-right: 8px;
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--user-gradient);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px var(--primary-glow);
         }
 
-        /* UserId 输入区域 */
+        /* 用户权限区域 */
         .user-auth {
             display: flex;
             align-items: center;
-            gap: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 4px 4px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
         }
 
-        .user-auth input {
-            padding: 8px 15px;
-            border: 1px solid #D1D8E0;
-            border-radius: 8px;
-            outline: none;
-            font-size: 14px;
-            transition: border 0.3s;
-        }
-
-        .user-auth input:focus {
-            border-color: var(--primary-color);
+        .user-auth:focus-within {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
         }
 
         .user-auth span {
-            font-size: 12px;
-            color: #7F8C8D;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-right: 10px;
         }
 
-        /* 聊天消息区域 */
+        .user-auth input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            padding: 8px 12px;
+            outline: none;
+            font-size: 0.9rem;
+            width: 120px;
+        }
+
+        /* 聊天容器 */
         #chat-container {
             flex: 1;
-            padding: 20px 30px;
+            padding: 40px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 24px;
             scroll-behavior: smooth;
+            mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
         }
 
         .message {
-            max-width: 80%;
+            max-width: 85%;
             display: flex;
             flex-direction: column;
+            animation: messageIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        @keyframes messageIn {
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message.user {
             align-self: flex-end;
-            align-items: flex-end;
         }
 
         .message.ai {
             align-self: flex-start;
-            align-items: flex-start;
         }
 
         .bubble {
-            padding: 12px 18px;
-            border-radius: 15px;
-            font-size: 15px;
-            line-height: 1.5;
+            padding: 16px 24px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            line-height: 1.6;
             position: relative;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            transition: transform 0.2s;
         }
 
         .user .bubble {
-            background-color: var(--user-bubble-bg);
+            background: var(--user-gradient);
             color: white;
-            border-bottom-right-radius: 2px;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.3);
         }
 
         .ai .bubble {
-            background-color: var(--ai-bubble-bg);
-            color: var(--text-color);
-            border-bottom-left-radius: 2px;
-            border: 1px solid #E1E8EE;
+            background: var(--panel-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        /* Markdown 解析内部样式 */
+        /* 消息内部样式 */
         .bubble pre {
-            background: #F8F9FA;
-            padding: 10px;
-            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            margin: 12px 0;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.85rem;
             overflow-x: auto;
-            margin: 10px 0;
-            border: 1px solid #EDF2F7;
         }
 
-        .ai .bubble table {
+        .bubble code {
+            font-family: inherit;
+        }
+
+        .bubble table {
             width: 100%;
             border-collapse: collapse;
-            margin: 12px 0;
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid #E1E8EE;
-            border-radius: 8px;
+            margin: 15px 0;
+            border-radius: 10px;
             overflow: hidden;
+            font-size: 0.9rem;
         }
-        .ai .bubble th, .ai .bubble td {
-            border: 1px solid #E1E8EE;
-            padding: 10px 14px;
-            text-align: left;
-        }
+
         .ai .bubble th {
-            background-color: #F8F9FA;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent);
+            text-align: left;
+            padding: 12px;
             font-weight: 600;
-            color: var(--primary-color);
-        }
-        .ai .bubble tr:nth-child(even) {
-            background-color: #FAFBFC;
         }
 
-        .bubble p {
-            margin-bottom: 8px;
+        .ai .bubble td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .bubble p:last-child {
-            margin-bottom: 0;
+        .ai .bubble tr:last-child td { border: none; }
+
+        /* 输入区域 - 悬浮式设计 */
+        .input-wrapper {
+            padding: 30px 40px 40px;
+            background: transparent;
+            z-index: 10;
         }
 
-        /* 底部输入框 */
         .input-area {
-            padding: 20px 30px;
-            background: white;
-            border-top: 1px solid #E1E8EE;
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 10px 10px 10px 25px;
+            border-radius: 30px;
+            border: 1px solid var(--glass-border);
             display: flex;
-            gap: 15px;
             align-items: center;
+            gap: 15px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .input-area:focus-within {
+            border-color: var(--primary);
+            transform: translateY(-2px);
         }
 
         #message-input {
             flex: 1;
-            padding: 12px 20px;
-            border: 1px solid #D1D8E0;
-            border-radius: 25px;
-            font-size: 15px;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 1rem;
             outline: none;
-            transition: all 0.3s;
+            padding: 10px 0;
         }
 
-        #message-input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-        }
-
-        #message-input:disabled {
-            background-color: #F8F9FA;
-            cursor: not-allowed;
+        #message-input::placeholder {
+            color: var(--text-dim);
         }
 
         #send-btn {
-            background-color: var(--primary-color);
+            background: var(--user-gradient);
             color: white;
             border: none;
-            width: 45px;
-            height: 45px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s, background-color 0.2s;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
         }
 
         #send-btn:hover:not(:disabled) {
-            background-color: #357ABD;
-            transform: scale(1.05);
+            transform: scale(1.1) rotate(-10deg);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6);
         }
 
+        #send-btn:active { transform: scale(0.95); }
+
         #send-btn:disabled {
-            background-color: #BDC3C7;
+            background: #475569;
+            box-shadow: none;
             cursor: not-allowed;
+            opacity: 0.6;
         }
 
         #send-btn svg {
             width: 20px;
             height: 20px;
             fill: white;
+            transition: transform 0.3s ease;
         }
 
-        /* 打字动画效果 */
-        .typing {
+        #send-btn:hover:not(:disabled) svg {
+            transform: translateX(2px) translateY(-2px);
+        }
+
+        /* 打字光标 */
+        .typing-cursor {
             display: inline-block;
-            width: 10px;
-            height: 4px;
-            background-color: var(--primary-color);
-            animation: blink 1s infinite alternate;
-            margin-left: 5px;
+            width: 8px;
+            height: 18px;
+            background: var(--accent);
+            margin-left: 6px;
             vertical-align: middle;
+            border-radius: 2px;
+            animation: blink 0.8s infinite;
+            box-shadow: 0 0 10px var(--accent);
         }
 
         @keyframes blink {
-            from { opacity: 1; }
-            to { opacity: 0; }
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
         }
 
-        /* 滚动条美化 */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb {
-            background-color: #CBD5E0;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            header { padding: 15px 20px; }
+            #chat-container { padding: 20px; }
+            .input-wrapper { padding: 20px; }
+            .message { max-width: 95%; }
         }
     </style>
 </head>
 <body>
+    <div class="bg-glow"></div>
+    <div class="top-bar"></div>
 
     <header>
         <div class="logo">
-            <div class="dot"></div>
-            AI Helper
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                </svg>
+            </div>
+            亮仔智联 AI
         </div>
         <div class="user-auth">
-            <span>用户名称:</span>
-            <input type="text" id="userId" placeholder="请输入您的姓名以开始" value="陈亮">
+            <span>用户姓名</span>
+            <input type="text" id="userId" placeholder="姓名" value="陈亮">
         </div>
     </header>
 
     <div id="chat-container">
         <div class="message ai">
             <div class="bubble">
-                您好！我是您的业务 AI 助手。请在上方输入 <strong>用户名称</strong>，然后开始提问吧。✨
+                <p>探索开始。我是您的生产力伙伴。🚀</p>
+                <p>确认身份后，请在下方即刻启程。</p>
             </div>
         </div>
     </div>
 
-    <form class="input-area" id="chat-form">
-        <input type="text" id="message-input" placeholder="输入您的问题..." autocomplete="off">
-        <button type="submit" id="send-btn" title="发送">
-            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-        </button>
-    </form>
+    <div class="input-wrapper">
+        <form class="input-area" id="chat-form">
+            <input type="text" id="message-input" placeholder="键入指令或向我提问..." autocomplete="off">
+            <button type="submit" id="send-btn" title="执行 (Enter)">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+        </form>
+    </div>
 
     <!-- 脚本引入 -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     
     <script>
-        // 配置 marked 使用 highlight.js
+        // 配置 marked
         marked.setOptions({
             highlight: function(code, lang) {
                 const language = hljs.getLanguage(lang) ? lang : 'plaintext';
@@ -315,23 +412,21 @@
         const userIdInput = document.getElementById('userId');
         const sendBtn = document.getElementById('send-btn');
 
-        // 核心校验逻辑：如果没有 UserId，则置灰输入框和发送按钮
         function validateUserId() {
             const userId = userIdInput.value.trim();
             const isValid = userId.length > 0;
             messageInput.disabled = !isValid;
             sendBtn.disabled = !isValid;
             if(!isValid) {
-                messageInput.placeholder = "请先输入 UserId";
+                messageInput.placeholder = "请先配置 Identity 以激活终端";
             } else {
-                messageInput.placeholder = "输入您的问题...";
+                messageInput.placeholder = "键入指令或向我提问...";
             }
         }
 
         userIdInput.addEventListener('input', validateUserId);
-        validateUserId(); // 初始化执行一次
+        validateUserId();
 
-        // 添加消息到界面
         function appendMessage(role, text) {
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${role}`;
@@ -340,8 +435,7 @@
             bubble.className = 'bubble';
             
             if (role === 'ai') {
-                // AI 消息初始化时包含打字机光标
-                bubble.innerHTML = marked.parse(text) + '<span class="typing"></span>';
+                bubble.innerHTML = marked.parse(text) + '<span class="typing-cursor"></span>';
             } else {
                 bubble.textContent = text;
             }
@@ -352,7 +446,6 @@
             return bubble;
         }
 
-        // 发送消息并获取流式响应
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const message = messageInput.value.trim();
@@ -360,22 +453,18 @@
 
             if (!message || !userId) return;
 
-            // 1. 添加用户消息
             appendMessage('user', message);
             messageInput.value = '';
 
-            // 2. 创建一个空的 AI 气泡用于接收流
-            const aiBubble = appendMessage('ai', '...');
+            const aiBubble = appendMessage('ai', '思考中...');
             let fullText = '';
 
             try {
-                // 3. 开始 SSE 请求
                 const url = `/streamingAssistant?userId=${encodeURIComponent(userId)}&message=${encodeURIComponent(message)}`;
                 const response = await fetch(url);
                 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || '网络异常或后端服务未就绪');
+                    throw new Error(await response.text() || '终端连接中断');
                 }
 
                 const reader = response.body.getReader();
@@ -398,33 +487,25 @@
                         const trimmedLine = line.trim();
                         if (trimmedLine.startsWith('data:')) {
                             const data = line.replace(/^data: ?/, '');
-                            // 关键修复：补回被 split 掉的换行符。
-                            // 只有带有换行符，marked.js 才能正确识别 Markdown 表格。
                             fullText += data + '\n';
-                            aiBubble.innerHTML = marked.parse(fullText) + '<span class="typing"></span>';
+                            aiBubble.innerHTML = marked.parse(fullText) + '<span class="typing-cursor"></span>';
                             chatContainer.scrollTop = chatContainer.scrollHeight;
                         }
                     }
                 }
                 
                 if (buffer.startsWith('data:')) {
-                    hasData = true;
                     fullText += buffer.replace(/^data: ?/, '');
                     aiBubble.innerHTML = marked.parse(fullText);
                 }
 
-                if (!hasData && fullText === '') {
-                    aiBubble.innerHTML = `<span style="color:orange">AI 未返回任何有效数据，可能是业务场景识别失败或模型逻辑冲突。请尝试重新发送。</span>`;
-                }
-                
-                const cursor = aiBubble.querySelector('.typing');
+                const cursor = aiBubble.querySelector('.typing-cursor');
                 if (cursor) cursor.remove();
 
             } catch (err) {
                 console.error(err);
-                aiBubble.innerHTML = `<div style="padding:10px; border-left:4px solid #e74c3c; background:#fdf2f2; color:#c0392b; border-radius:4px;">
-                    <strong>请求失败:</strong> ${err.message}<br/>
-                    <small style="opacity:0.7">请检查后端服务是否正在运行或 Session 是否已失效。</small>
+                aiBubble.innerHTML = `<div style="padding:15px; border:1px solid rgba(239, 68, 68, 0.2); background:rgba(239, 68, 68, 0.1); color:#f87171; border-radius:12px;">
+                    <strong>系统错误:</strong> ${err.message}
                 </div>`;
             }
         });

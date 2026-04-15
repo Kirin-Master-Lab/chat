@@ -1,14 +1,24 @@
 package com.chenliang.chat.controller;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.chenliang.chat.aiservice.Assistant;
 import com.chenliang.chat.aiservice.StreamingAssistant;
 import com.chenliang.chat.aiservice.intent.IntentResolver;
 import com.chenliang.chat.aiservice.prompt.PromptService;
 import com.chenliang.chat.aiservice.state.StateStore;
+import com.chenliang.chat.entity.ChatSessionEntity;
+import com.chenliang.chat.service.ChatSessionService;
+import dev.langchain4j.data.message.*;
+import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE;
 
@@ -27,17 +37,23 @@ public class AssistantController {
     private final IntentResolver intentResolver;
     private final PromptService promptService;
     private final StateStore stateStore;
+    private final ChatSessionService chatSessionService;
+    private final ChatMemoryStore chatMemoryStore;
 
-    public AssistantController(Assistant assistant, 
+    public AssistantController(Assistant assistant,
                                StreamingAssistant streamingAssistant,
                                IntentResolver intentResolver,
                                PromptService promptService,
-                               StateStore stateStore) {
+                               StateStore stateStore,
+                               ChatSessionService chatSessionService,
+                               ChatMemoryStore chatMemoryStore) {
         this.assistant = assistant;
         this.streamingAssistant = streamingAssistant;
         this.intentResolver = intentResolver;
         this.promptService = promptService;
         this.stateStore = stateStore;
+        this.chatSessionService = chatSessionService;
+        this.chatMemoryStore = chatMemoryStore;
     }
 
     /**
@@ -46,10 +62,14 @@ public class AssistantController {
     @GetMapping("/assistant")
     public String assistant(
             @RequestParam(value = "userId", defaultValue = "user123") String userId,
+            @RequestParam(value = "sessionId", required = false) Long sessionId,
             @RequestParam(value = "message", defaultValue = "你好") String message) {
-        
+
+        // 处理会话逻辑
+        Long finalSessionId = getOrCreateSessionId(userId, sessionId);
+
         String systemMessage = resolveSystemMessage(userId, message);
-        return assistant.chat(userId, systemMessage, message);
+        return assistant.chat(finalSessionId, systemMessage, message);
     }
 
     /**
@@ -58,10 +78,69 @@ public class AssistantController {
     @GetMapping(value = "/streamingAssistant", produces = TEXT_EVENT_STREAM_VALUE)
     public Flux<String> streamingAssistant(
             @RequestParam(value = "userId", defaultValue = "user123") String userId,
+            @RequestParam(value = "sessionId", required = false) Long sessionId,
             @RequestParam(value = "message", defaultValue = "你好") String message) {
-        
+
+        // 处理会话逻辑
+        Long finalSessionId = getOrCreateSessionId(userId, sessionId);
+
         String systemMessage = resolveSystemMessage(userId, message);
-        return streamingAssistant.chat(userId, systemMessage, message);
+        return streamingAssistant.chat(finalSessionId, systemMessage, message);
+    }
+
+    /**
+     * 获取会话历史消息
+     */
+    @GetMapping("/session/messages")
+    public List<Map<String, Object>> getSessionMessages(@RequestParam Long sessionId) {
+        List<ChatMessage> messages = chatMemoryStore.getMessages(sessionId);
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        if (CollectionUtils.isEmpty(messages)) {
+            return result;
+        }
+        messages.stream().filter(k -> !(k instanceof SystemMessage)).forEach(k -> {
+
+            Map<String, Object> item = new HashMap<>();
+            item.put("role", k.type().toString().toLowerCase());
+            String content = null;
+            if (k instanceof SystemMessage) {
+                SystemMessage systemMessage = (SystemMessage) k;
+                content = systemMessage.text();
+                // 过滤空内容的系统消息
+                if (content == null || content.trim().isEmpty()) {
+                    return;
+                }
+                item.put("content", content);
+            } else if (k instanceof UserMessage) {
+                UserMessage userMessage = (UserMessage) k;
+                content = userMessage.singleText();
+                item.put("content", content);
+            } else if (k instanceof AiMessage) {
+                AiMessage aiMessage = (AiMessage) k;
+                content = aiMessage.text();
+                // 过滤content为null的AI消息
+                if (content == null) {
+                    return;
+                }
+                item.put("content", content);
+            } else if (k instanceof ToolExecutionResultMessage) {
+                ToolExecutionResultMessage toolExecutionResultMessage = (ToolExecutionResultMessage) k;
+                content = toolExecutionResultMessage.text();
+                item.put("content", content);
+            }
+
+            result.add(item);
+        });
+
+
+//        for (ChatMessage message : messages) {
+//            Map<String, Object> item = new HashMap<>();
+//            item.put("role", message.type().toString().toLowerCase());
+//            item.put("content", ((SystemMessage) message).text());
+//            result.add(item);
+//        }
+        return result;
     }
 
     /**
@@ -88,5 +167,26 @@ public class AssistantController {
 
         // 4. 获取并返回提示词
         return promptService.getSystemPrompt(finalIntent);
+    }
+
+    /**
+     * 获取或创建会话ID
+     */
+    private Long getOrCreateSessionId(String userId, Long sessionId) {
+        if (sessionId != null) {
+            // 验证会话是否属于当前用户
+            ChatSessionEntity session = chatSessionService.getById(sessionId);
+            if (session != null && userId.equals(session.getUserId())) {
+                return sessionId;
+            }
+        }
+        // 没有sessionId或者验证失败，获取默认会话
+        ChatSessionEntity defaultSession = chatSessionService.getDefaultSession(userId);
+        if (defaultSession != null) {
+            return defaultSession.getId();
+        }
+        // 没有默认会话，创建新会话
+        ChatSessionEntity newSession = chatSessionService.createSession(userId, "新会话");
+        return newSession.getId();
     }
 }

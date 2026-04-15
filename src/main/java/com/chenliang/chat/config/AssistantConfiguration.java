@@ -43,7 +43,7 @@ public class AssistantConfiguration {
     ChatMemoryProvider chatMemoryProvider(CustomChatMemoryStore customChatMemoryStore) {
         return memoryId -> MessageWindowChatMemory.builder()
                 .id(memoryId)
-                .maxMessages(10)
+                .maxMessages(50)
                 .chatMemoryStore(customChatMemoryStore)
                 .build();
     }

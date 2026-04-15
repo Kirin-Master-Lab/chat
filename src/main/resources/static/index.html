@@ -37,9 +37,104 @@
             color: var(--text-main);
             height: 100vh;
             display: flex;
-            flex-direction: column;
             overflow: hidden;
             position: relative;
+        }
+
+        /* 主容器 */
+        .main-container {
+            display: flex;
+            flex: 1;
+            height: 100vh;
+        }
+
+        /* 左侧会话侧边栏 */
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(16px);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            background: var(--user-gradient);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .new-chat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .session-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .session-item {
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid transparent;
+        }
+
+        .session-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--glass-border);
+        }
+
+        .session-item.active {
+            background: var(--panel-bg);
+            border-color: var(--primary);
+        }
+
+        .session-icon {
+            width: 20px;
+            height: 20px;
+            opacity: 0.7;
+            flex-shrink: 0;
+        }
+
+        .session-name {
+            flex: 1;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 右侧内容区域 */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
 
         /* 动态背景光效 */
@@ -198,7 +293,76 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
+        .tool_execution_result .bubble {
+            background: rgba(16, 185, 129, 0.1);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+        }
+
         /* 消息内部样式 */
+        .bubble p {
+            margin: 8px 0;
+            line-height: 1.7;
+        }
+
+        .bubble h1, .bubble h2, .bubble h3, .bubble h4, .bubble h5, .bubble h6 {
+            margin: 16px 0 8px 0;
+            font-weight: 600;
+            line-height: 1.4;
+            color: var(--accent);
+        }
+
+        .bubble h1 { font-size: 1.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px; }
+        .bubble h2 { font-size: 1.3rem; }
+        .bubble h3 { font-size: 1.15rem; }
+        .bubble h4 { font-size: 1.05rem; }
+
+        .bubble ul, .bubble ol {
+            margin: 10px 0;
+            padding-left: 28px;
+            line-height: 1.8;
+        }
+
+        .bubble li {
+            margin: 4px 0;
+        }
+
+        .bubble blockquote {
+            margin: 12px 0;
+            padding: 10px 16px;
+            border-left: 4px solid var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: var(--text-dim);
+        }
+
+        .bubble strong, .bubble b {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .bubble a {
+            color: var(--primary);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .bubble a:hover {
+            border-bottom-color: var(--primary);
+        }
+
+        .bubble hr {
+            border: none;
+            border-top: 1px solid var(--glass-border);
+            margin: 20px 0;
+        }
+
         .bubble pre {
             background: rgba(0, 0, 0, 0.3);
             margin: 12px 0;
@@ -212,6 +376,15 @@
 
         .bubble code {
             font-family: inherit;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .bubble pre code {
+            background: transparent;
+            padding: 0;
         }
 
         .bubble table {
@@ -221,6 +394,9 @@
             border-radius: 10px;
             overflow: hidden;
             font-size: 0.9rem;
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
         }
 
         .ai .bubble th {
@@ -359,37 +535,57 @@
     <div class="bg-glow"></div>
     <div class="top-bar"></div>
 
-    <header>
-        <div class="logo">
-            <div class="logo-icon">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                </svg>
+    <div class="main-container">
+        <!-- 左侧会话侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <button class="new-chat-btn" id="new-chat-btn">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="white">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                    新会话
+                </button>
             </div>
-            亮仔智联 AI
-        </div>
-        <div class="user-auth">
-            <span>用户姓名</span>
-            <input type="text" id="userId" placeholder="姓名" value="陈亮">
-        </div>
-    </header>
-
-    <div id="chat-container">
-        <div class="message ai">
-            <div class="bubble">
-                <p>探索开始。我是您的生产力伙伴。🚀</p>
-                <p>确认身份后，请在下方即刻启程。</p>
+            <div class="session-list" id="session-list">
+                <!-- 会话列表会动态生成在这里 -->
             </div>
         </div>
-    </div>
 
-    <div class="input-wrapper">
-        <form class="input-area" id="chat-form">
-            <input type="text" id="message-input" placeholder="键入指令或向我提问..." autocomplete="off">
-            <button type="submit" id="send-btn" title="执行 (Enter)">
-                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-            </button>
-        </form>
+        <!-- 右侧聊天内容区域 -->
+        <div class="content-area">
+            <header>
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                        </svg>
+                    </div>
+                    亮仔智联 AI
+                </div>
+                <div class="user-auth">
+                    <span>用户姓名</span>
+                    <input type="text" id="userId" placeholder="姓名" value="陈亮">
+                </div>
+            </header>
+
+            <div id="chat-container">
+                <div class="message ai">
+                    <div class="bubble">
+                        <p>探索开始。我是您的生产力伙伴。🚀</p>
+                        <p>确认身份后，请在下方即刻启程。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-wrapper">
+                <form class="input-area" id="chat-form">
+                    <input type="text" id="message-input" placeholder="键入指令或向我提问..." autocomplete="off">
+                    <button type="submit" id="send-btn" title="执行 (Enter)">
+                        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- 脚本引入 -->
@@ -397,8 +593,50 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     
     <script>
+        // 预处理markdown，修复不规范的表格格式
+        function preprocessMarkdown(text) {
+            // 只有同时包含|和---才判定有表格，否则直接返回，不影响普通文本
+            if (!(text.includes('|') && text.includes('---'))) {
+                return text;
+            }
+
+            // 修复所有表格行挤在同一行的问题
+            const pipeCount = (text.match(/\|/g) || []).length;
+            if (pipeCount > 5) { // 超过5个|说明有表格挤在一行
+                // 按 | 拆分，两列的话每3个|为一行
+                const parts = text.split(/(?=\|)/);
+                let newLines = [];
+                let currentLine = '';
+                let count = 0;
+
+                parts.forEach(part => {
+                    currentLine += part;
+                    if (part.trim().endsWith('|')) {
+                        count++;
+                        if (count % 3 === 0) { // 两列3个|
+                            newLines.push(currentLine.trim());
+                            currentLine = '';
+                        }
+                    }
+                });
+
+                if (currentLine.trim()) {
+                    newLines.push(currentLine.trim());
+                }
+
+                text = newLines.join('\n');
+            }
+
+            return text;
+        }
+
         // 配置 marked
         marked.setOptions({
+            gfm: true, // 开启GitHub flavored markdown，完美支持表格
+            tables: true, // 强制开启表格解析
+            breaks: true, // 支持换行
+            smartLists: true, // 智能列表
+            smartypants: true, // 智能标点符号
             highlight: function(code, lang) {
                 const language = hljs.getLanguage(lang) ? lang : 'plaintext';
                 return hljs.highlight(code, { language }).value;
@@ -411,38 +649,159 @@
         const messageInput = document.getElementById('message-input');
         const userIdInput = document.getElementById('userId');
         const sendBtn = document.getElementById('send-btn');
+        const sessionList = document.getElementById('session-list');
+        const newChatBtn = document.getElementById('new-chat-btn');
+
+        // 全局状态
+        let currentSessionId = null;
+        let sessionListData = [];
 
         function validateUserId() {
             const userId = userIdInput.value.trim();
             const isValid = userId.length > 0;
             messageInput.disabled = !isValid;
             sendBtn.disabled = !isValid;
+            newChatBtn.disabled = !isValid;
             if(!isValid) {
                 messageInput.placeholder = "请先配置 Identity 以激活终端";
             } else {
                 messageInput.placeholder = "键入指令或向我提问...";
+                // 加载用户会话列表
+                loadSessionList();
             }
         }
 
         userIdInput.addEventListener('input', validateUserId);
         validateUserId();
 
-        function appendMessage(role, text) {
+        // 加载会话列表
+        async function loadSessionList() {
+            const userId = userIdInput.value.trim();
+            if (!userId) return;
+
+            try {
+                const response = await fetch(`/session/list?userId=${encodeURIComponent(userId)}`);
+                sessionListData = await response.json();
+                renderSessionList();
+
+                // 如果有会话，默认选中第一个
+                if (sessionListData.length > 0 && !currentSessionId) {
+                    switchSession(sessionListData[0].id);
+                } else if (sessionListData.length === 0) {
+                    // 没有会话，创建新会话
+                    await createNewSession();
+                }
+            } catch (err) {
+                console.error('加载会话列表失败:', err);
+            }
+        }
+
+        // 渲染会话列表
+        function renderSessionList() {
+            sessionList.innerHTML = '';
+            sessionListData.forEach(session => {
+                const item = document.createElement('div');
+                item.className = `session-item ${session.id === currentSessionId ? 'active' : ''}`;
+                item.dataset.id = session.id;
+
+                item.innerHTML = `
+                    <svg class="session-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                    </svg>
+                    <span class="session-name">${session.sessionName}</span>
+                `;
+
+                item.addEventListener('click', () => {
+                    switchSession(session.id);
+                });
+
+                sessionList.appendChild(item);
+            });
+        }
+
+        // 切换会话
+        async function switchSession(sessionId) {
+            if (sessionId === currentSessionId) return;
+
+            currentSessionId = sessionId;
+            renderSessionList();
+
+            // 清空当前聊天记录
+            chatContainer.innerHTML = '';
+
+            // 加载会话历史消息
+            try {
+                const response = await fetch(`/session/messages?sessionId=${sessionId}`);
+                const messages = await response.json();
+
+                if (messages.length === 0) {
+                    // 没有历史消息，显示欢迎语
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'message ai';
+                    msgDiv.innerHTML = `
+                        <div class="bubble">
+                            <p>探索开始。我是您的生产力伙伴。🚀</p>
+                            <p>确认身份后，请在下方即刻启程。</p>
+                        </div>
+                    `;
+                    chatContainer.appendChild(msgDiv);
+                } else {
+                    // 渲染历史消息
+                    messages.forEach(msg => {
+                        appendMessage(msg.role, msg.content, false);
+                    });
+                }
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            } catch (err) {
+                console.error('加载会话历史失败:', err);
+            }
+        }
+
+        // 创建新会话
+        async function createNewSession() {
+            const userId = userIdInput.value.trim();
+            if (!userId) return;
+
+            try {
+                const response = await fetch('/session/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `userId=${encodeURIComponent(userId)}&sessionName=新会话`
+                });
+                const newSession = await response.json();
+                await loadSessionList();
+                switchSession(newSession.id);
+            } catch (err) {
+                console.error('创建会话失败:', err);
+            }
+        }
+
+        newChatBtn.addEventListener('click', createNewSession);
+
+        function appendMessage(role, text, scroll = true) {
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${role}`;
-            
+
             const bubble = document.createElement('div');
             bubble.className = 'bubble';
-            
+
             if (role === 'ai') {
-                bubble.innerHTML = marked.parse(text) + '<span class="typing-cursor"></span>';
+                const processedText = preprocessMarkdown(text);
+                bubble.innerHTML = marked.parse(processedText) + '<span class="typing-cursor"></span>';
+            } else if (role === 'tool_execution_result') {
+                // 工具消息直接展示纯文本，不解析markdown
+                bubble.textContent = text;
             } else {
                 bubble.textContent = text;
             }
-            
+
             msgDiv.appendChild(bubble);
             chatContainer.appendChild(msgDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            if (scroll) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
             return bubble;
         }
 
@@ -451,7 +810,7 @@
             const message = messageInput.value.trim();
             const userId = userIdInput.value.trim();
 
-            if (!message || !userId) return;
+            if (!message || !userId || !currentSessionId) return;
 
             appendMessage('user', message);
             messageInput.value = '';
@@ -460,44 +819,50 @@
             let fullText = '';
 
             try {
-                const url = `/streamingAssistant?userId=${encodeURIComponent(userId)}&message=${encodeURIComponent(message)}`;
+                const url = `/streamingAssistant?userId=${encodeURIComponent(userId)}&sessionId=${currentSessionId}&message=${encodeURIComponent(message)}`;
                 const response = await fetch(url);
-                
+
                 if (!response.ok) {
                     throw new Error(await response.text() || '终端连接中断');
                 }
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
-                
-                aiBubble.innerHTML = ''; 
-                let buffer = ''; 
+
+                aiBubble.innerHTML = '';
+                let buffer = '';
                 let hasData = false;
 
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
-                    
+
                     hasData = true;
                     buffer += decoder.decode(value, { stream: true });
                     let lines = buffer.split('\n');
-                    buffer = lines.pop(); 
-                    
+                    buffer = lines.pop();
+
                     for (const line of lines) {
                         const trimmedLine = line.trim();
                         if (trimmedLine.startsWith('data:')) {
                             const data = line.replace(/^data: ?/, '');
                             fullText += data + '\n';
+                            // 流式过程中直接渲染，不做表格预处理，避免混乱
                             aiBubble.innerHTML = marked.parse(fullText) + '<span class="typing-cursor"></span>';
                             chatContainer.scrollTop = chatContainer.scrollHeight;
                         }
                     }
                 }
-                
+
                 if (buffer.startsWith('data:')) {
                     fullText += buffer.replace(/^data: ?/, '');
-                    aiBubble.innerHTML = marked.parse(fullText);
                 }
+
+                // 流式输出完全结束后，延迟200ms做一次完整格式化，确保所有内容都接收完毕
+                setTimeout(() => {
+                    const finalProcessed = preprocessMarkdown(fullText);
+                    aiBubble.innerHTML = marked.parse(finalProcessed);
+                }, 200);
 
                 const cursor = aiBubble.querySelector('.typing-cursor');
                 if (cursor) cursor.remove();

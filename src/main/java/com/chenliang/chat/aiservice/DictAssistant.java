@@ -13,7 +13,7 @@ import reactor.core.publisher.Flux;
  * 显式挂载 DictionaryTools 以支持字典管理。
  */
 @AiService(tools = "dictionaryTools")
-public interface StreamingAssistant {
+public interface DictAssistant {
 
     /**
      * 发送用户消息并以响应式流的形式获取 AI 的回复。

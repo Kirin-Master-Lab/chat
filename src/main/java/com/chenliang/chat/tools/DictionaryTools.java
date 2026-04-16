@@ -1,6 +1,6 @@
 package com.chenliang.chat.tools;
 
-import com.chenliang.chat.aiservice.dict.DictionaryConfig;
+import com.chenliang.chat.aimanage.config.InterfaceConfig;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +21,11 @@ import java.util.Map;
 @Component
 public class DictionaryTools {
 
-    private final DictionaryConfig dictionaryConfig;
+    private final InterfaceConfig interfaceConfig;
     private final RestTemplate restTemplate;
 
-    public DictionaryTools(DictionaryConfig dictionaryConfig, RestTemplate restTemplate) {
-        this.dictionaryConfig = dictionaryConfig;
+    public DictionaryTools(InterfaceConfig interfaceConfig, RestTemplate restTemplate) {
+        this.interfaceConfig = interfaceConfig;
         this.restTemplate = restTemplate;
     }
 
@@ -40,7 +40,7 @@ public class DictionaryTools {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", dictionaryConfig.getAuthorization());
+            headers.set("Authorization", interfaceConfig.getAuthorization());
 
             Map<String, String> requestBody = new HashMap<>();
             requestBody.put("dictCode", dictCode);
@@ -50,7 +50,7 @@ public class DictionaryTools {
             HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
 
             // 使用 Map.class 接收响应以便解析业务状态码
-            Map<String, Object> response = restTemplate.postForObject(dictionaryConfig.getSaveUrl(), entity, Map.class);
+            Map<String, Object> response = restTemplate.postForObject(interfaceConfig.getSaveUrl(), entity, Map.class);
             log.info("接口返回结果: {}", response);
 
             if (response != null && Integer.valueOf(10000).equals(response.get("code"))) {
@@ -90,7 +90,7 @@ public class DictionaryTools {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", dictionaryConfig.getAuthorization());
+            headers.set("Authorization", interfaceConfig.getAuthorization());
 
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("dictCode", dictCode);
@@ -104,7 +104,7 @@ public class DictionaryTools {
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
             // 解析响应 Map
-            Map<String, Object> response = restTemplate.postForObject(dictionaryConfig.getItemSaveUrl(), entity, Map.class);
+            Map<String, Object> response = restTemplate.postForObject(interfaceConfig.getItemSaveUrl(), entity, Map.class);
             log.info("子项接口返回结果: {}", response);
 
             if (response != null && Integer.valueOf(10000).equals(response.get("code"))) {

@@ -2,7 +2,7 @@ package com.chenliang.chat.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.chenliang.chat.aiservice.Assistant;
-import com.chenliang.chat.aiservice.StreamingAssistant;
+import com.chenliang.chat.aiservice.DictAssistant;
 import com.chenliang.chat.aiservice.intent.IntentResolver;
 import com.chenliang.chat.aiservice.prompt.PromptService;
 import com.chenliang.chat.aiservice.state.StateStore;
@@ -33,7 +33,7 @@ public class AssistantController {
     private static final String STATE_MODE_KEY = "CURRENT_MODE";
 
     private final Assistant assistant;
-    private final StreamingAssistant streamingAssistant;
+    private final DictAssistant dictAssistant;
     private final IntentResolver intentResolver;
     private final PromptService promptService;
     private final StateStore stateStore;
@@ -41,14 +41,14 @@ public class AssistantController {
     private final ChatMemoryStore chatMemoryStore;
 
     public AssistantController(Assistant assistant,
-                               StreamingAssistant streamingAssistant,
+                               DictAssistant dictAssistant,
                                IntentResolver intentResolver,
                                PromptService promptService,
                                StateStore stateStore,
                                ChatSessionService chatSessionService,
                                ChatMemoryStore chatMemoryStore) {
         this.assistant = assistant;
-        this.streamingAssistant = streamingAssistant;
+        this.dictAssistant = dictAssistant;
         this.intentResolver = intentResolver;
         this.promptService = promptService;
         this.stateStore = stateStore;
@@ -56,21 +56,21 @@ public class AssistantController {
         this.chatMemoryStore = chatMemoryStore;
     }
 
-    /**
-     * 同步聊天端点。
-     */
-    @GetMapping("/assistant")
-    public String assistant(
-            @RequestParam(value = "userId", defaultValue = "user123") String userId,
-            @RequestParam(value = "sessionId", required = false) Long sessionId,
-            @RequestParam(value = "message", defaultValue = "你好") String message) {
-
-        // 处理会话逻辑
-        Long finalSessionId = getOrCreateSessionId(userId, sessionId);
-
-        String systemMessage = resolveSystemMessage(userId, message);
-        return assistant.chat(finalSessionId, systemMessage, message);
-    }
+//    /**
+//     * 同步聊天端点。
+//     */
+//    @GetMapping("/assistant")
+//    public String assistant(
+//            @RequestParam(value = "userId", defaultValue = "user123") String userId,
+//            @RequestParam(value = "sessionId", required = false) Long sessionId,
+//            @RequestParam(value = "message", defaultValue = "你好") String message) {
+//
+//        // 处理会话逻辑
+//        Long finalSessionId = getOrCreateSessionId(userId, sessionId);
+//
+//        String systemMessage = resolveSystemMessage(userId, message);
+//        return assistant.chat(finalSessionId, systemMessage, message);
+//    }
 
     /**
      * 流式聊天端点。
@@ -85,7 +85,7 @@ public class AssistantController {
         Long finalSessionId = getOrCreateSessionId(userId, sessionId);
 
         String systemMessage = resolveSystemMessage(userId, message);
-        return streamingAssistant.chat(finalSessionId, systemMessage, message);
+        return dictAssistant.chat(finalSessionId, systemMessage, message);
     }
 
     /**

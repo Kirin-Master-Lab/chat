@@ -1,4 +1,4 @@
-package com.chenliang.chat.aiservice.dict;
+package com.chenliang.chat.aimanage.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "dict.api")
-public class DictionaryConfig {
+public class InterfaceConfig {
 
     /**
      * 保存字典主项的接口 URL。

@@ -1,4 +1,4 @@
-package com.chenliang.chat.aiservice.dict;
+package com.chenliang.chat.aimanage.dict;
 
 /**
  * 业务提示词注册中心。

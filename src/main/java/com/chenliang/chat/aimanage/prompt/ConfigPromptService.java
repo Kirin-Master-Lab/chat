@@ -1,7 +1,6 @@
-package com.chenliang.chat.aiservice.prompt;
+package com.chenliang.chat.aimanage.prompt;
 
-import com.chenliang.chat.aiservice.dict.PromptRegistry;
-import com.chenliang.chat.aiservice.intent.IntentResolver;
+import com.chenliang.chat.aimanage.dict.PromptRegistry;
 import org.springframework.stereotype.Service;
 
 /**
@@ -10,9 +9,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class ConfigPromptService implements PromptService {
 
+    private static final String PROMPT_MODE_DICT = "DICT_EXPERT";
+
     @Override
     public String getSystemPrompt(String intentCode) {
-        if (IntentResolver.MODE_DICT.equals(intentCode)) {
+        if (PROMPT_MODE_DICT.equals(intentCode)) {
             return PromptRegistry.DICTIONARY_EXPERT;
         }
 

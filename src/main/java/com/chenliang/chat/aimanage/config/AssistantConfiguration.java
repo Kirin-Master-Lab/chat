@@ -1,9 +1,8 @@
-package com.chenliang.chat.config;
+package com.chenliang.chat.aimanage.config;
 
-import com.chenliang.chat.aiservice.Assistant;
-import com.chenliang.chat.aiservice.DictAssistant;
-import com.chenliang.chat.listener.MyChatModelListener;
-import com.chenliang.chat.lowlevel.ChatModelController;
+import com.chenliang.chat.aimanage.aiservice.DefaultAssistant;
+import com.chenliang.chat.aimanage.aiservice.DictAssistant;
+import com.chenliang.chat.aimanage.listener.MyChatModelListener;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
@@ -52,8 +51,7 @@ public class AssistantConfiguration {
      * 定义模型监听器。
      * 该监听器会自动注入到 Spring 上下文中找到的所有 {@link ChatModel} 和 {@link StreamingChatModel} Bean 中。
      * <p>
-     * 它不仅能监控 {@link Assistant} 和 {@link DictAssistant} 的调用，
-     * 还能监控 {@link ChatModelController} 中直接使用的底层模型交互。
+     * 它不仅能监控 {@link DefaultAssistant} 和 {@link DictAssistant} 的调用，
      *
      * @return 自定义的聊天模型监听器实例，用于记录请求、响应和错误。
      */

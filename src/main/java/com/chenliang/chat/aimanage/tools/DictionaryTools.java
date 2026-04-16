@@ -1,4 +1,4 @@
-package com.chenliang.chat.tools;
+package com.chenliang.chat.aimanage.tools;
 
 import com.chenliang.chat.aimanage.config.InterfaceConfig;
 import dev.langchain4j.agent.tool.P;

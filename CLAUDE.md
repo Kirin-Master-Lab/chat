@@ -29,7 +29,7 @@ mvn test -Dtest=TestClassName#testMethodName
 │                     聊天应用（端口 8082）                            │
 ├─────────────────────────────────────────────────────────────────────┤
 │  控制器层：REST API 接口                                             │
-│  ├─ AssistantController (/assistant, /streamingAssistant)          │
+│  ├─ AssistantController (/defaultAssistant, /streamingAssistant)          │
 │  └─ ChatModelController（底层 LLM 访问接口）                         │
 │                                                                     │
 │  AI 服务层：核心业务逻辑                                             │
@@ -71,5 +71,5 @@ mvn test -Dtest=TestClassName#testMethodName
 - 会话状态存储在 Redis 中
 
 ## API 接口
-- `GET /assistant` - 同步非流式聊天接口
+- `GET /defaultAssistant` - 同步非流式聊天接口
 - `GET /streamingAssistant` - 服务端事件（SSE）流式聊天接口

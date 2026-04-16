@@ -1,4 +1,4 @@
-package com.chenliang.chat.aiservice;
+package com.chenliang.chat.aimanage.aiservice;
 
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;

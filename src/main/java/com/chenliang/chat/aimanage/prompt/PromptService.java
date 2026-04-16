@@ -1,4 +1,4 @@
-package com.chenliang.chat.aiservice.prompt;
+package com.chenliang.chat.aimanage.prompt;
 
 /**
  * 提示词管理服务。

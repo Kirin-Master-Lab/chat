@@ -17,106 +17,115 @@ import java.util.List;
 
 /**
  * 自定义聊天记忆存储。
- * 实现 {@link ChatMemoryStore} 接口，将 LangChain4j 的对话消息持久化到 MySQL 数据库中。
- * 支持基于 userId (MemoryId) 的会话隔离和持久化。
+ * 按助手类型拆分同一会话的上下文，避免通用助手和字典助手共用一份历史。
  */
 @Component
 public class CustomChatMemoryStore implements ChatMemoryStore {
 
+    private static final String MEMORY_ID_SEPARATOR = "::";
+    private static final String ASSISTANT_TYPE_DEFAULT = "default";
+    private static final String ASSISTANT_TYPE_DICT = "dict";
+
     private final ChatMemoryMapper chatMemoryMapper;
     private final ChatSessionMapper chatSessionMapper;
 
-    /**
-     * 构造函数注入 Mapper。
-     *
-     * @param chatMemoryMapper 聊天记忆 Mapper
-     */
     public CustomChatMemoryStore(ChatMemoryMapper chatMemoryMapper, ChatSessionMapper chatSessionMapper) {
-
         this.chatMemoryMapper = chatMemoryMapper;
         this.chatSessionMapper = chatSessionMapper;
     }
 
-    /**
-     * 根据 MemoryId (在此为 sessionId) 获取历史消息。
-     *
-     * @param memoryId 会话标识
-     * @return 历史消息列表
-     */
     @Override
     public List<ChatMessage> getMessages(Object memoryId) {
-        Long sessionId;
-        try {
-            sessionId = Long.valueOf(String.valueOf(memoryId));
-        } catch (NumberFormatException e) {
+        MemoryContext memoryContext = parseMemoryContext(memoryId);
+        if (memoryContext == null) {
             return new ArrayList<>();
         }
+
         ChatMemoryEntity entity = chatMemoryMapper.selectOne(
-                new LambdaQueryWrapper<ChatMemoryEntity>().eq(ChatMemoryEntity::getSessionId, sessionId)
+                new LambdaQueryWrapper<ChatMemoryEntity>()
+                        .eq(ChatMemoryEntity::getSessionId, memoryContext.storageSessionId())
         );
         if (entity == null) {
             return new ArrayList<>();
         }
-        // 使用 LangChain4j 提供的反序列化工具将 JSON 转为消息对象列表
         return ChatMessageDeserializer.messagesFromJson(entity.getMessageJson());
     }
 
-    /**
-     * 更新 MemoryId 对应的消息。
-     * 每次对话发生变化时（如用户提问或 AI 回答后），LangChain4j 会自动调用此方法。
-     *
-     * @param memoryId 会话标识
-     * @param messages 最新的完整消息列表
-     */
     @Override
     public void updateMessages(Object memoryId, List<ChatMessage> messages) {
-        Long sessionId;
-        try {
-            sessionId = Long.valueOf(String.valueOf(memoryId));
-        } catch (NumberFormatException e) {
+        MemoryContext memoryContext = parseMemoryContext(memoryId);
+        if (memoryContext == null) {
             return;
         }
-        // 使用 LangChain4j 提供的序列化工具将消息对象列表转为 JSON
+
         String json = ChatMessageSerializer.messagesToJson(messages);
         LocalDateTime now = LocalDateTime.now();
 
         ChatMemoryEntity entity = chatMemoryMapper.selectOne(
-                new LambdaQueryWrapper<ChatMemoryEntity>().eq(ChatMemoryEntity::getSessionId, sessionId)
+                new LambdaQueryWrapper<ChatMemoryEntity>()
+                        .eq(ChatMemoryEntity::getSessionId, memoryContext.storageSessionId())
         );
 
         if (entity == null) {
-            ChatSessionEntity chatSessionEntity = chatSessionMapper.selectById(sessionId);
-            // 新会话开启对话，插入新记录
+            ChatSessionEntity session = chatSessionMapper.selectById(memoryContext.baseSessionId());
+            if (session == null) {
+                return;
+            }
+
             entity = new ChatMemoryEntity();
-            entity.setUserId(chatSessionEntity.getUserId());
-            entity.setSessionId(sessionId);
+            entity.setUserId(session.getUserId());
+            entity.setSessionId(memoryContext.storageSessionId());
             entity.setMessageJson(json);
             entity.setCreateTime(now);
             entity.setUpdateTime(now);
             chatMemoryMapper.insert(entity);
-        } else {
-            // 已有会话，更新消息内容
-            entity.setMessageJson(json);
-            entity.setUpdateTime(now);
-            chatMemoryMapper.updateById(entity);
-        }
-    }
-
-    /**
-     * 删除指定 MemoryId 的所有消息。
-     *
-     * @param memoryId 会话标识
-     */
-    @Override
-    public void deleteMessages(Object memoryId) {
-        Long sessionId;
-        try {
-            sessionId = Long.valueOf(String.valueOf(memoryId));
-        } catch (NumberFormatException e) {
             return;
         }
+
+        entity.setMessageJson(json);
+        entity.setUpdateTime(now);
+        chatMemoryMapper.updateById(entity);
+    }
+
+    @Override
+    public void deleteMessages(Object memoryId) {
+        MemoryContext memoryContext = parseMemoryContext(memoryId);
+        if (memoryContext == null) {
+            return;
+        }
+
         chatMemoryMapper.delete(
-                new LambdaQueryWrapper<ChatMemoryEntity>().eq(ChatMemoryEntity::getSessionId, sessionId)
+                new LambdaQueryWrapper<ChatMemoryEntity>()
+                        .eq(ChatMemoryEntity::getSessionId, memoryContext.storageSessionId())
         );
+    }
+
+    private MemoryContext parseMemoryContext(Object memoryId) {
+        String rawMemoryId = String.valueOf(memoryId);
+        if (rawMemoryId == null || rawMemoryId.trim().isEmpty()) {
+            return null;
+        }
+
+        String[] parts = rawMemoryId.split(MEMORY_ID_SEPARATOR, 2);
+        Long baseSessionId;
+        try {
+            baseSessionId = Long.valueOf(parts[0].trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+
+        String assistantType = parts.length > 1 ? parts[1].trim().toLowerCase() : ASSISTANT_TYPE_DEFAULT;
+        Long storageSessionId = resolveStorageSessionId(baseSessionId, assistantType);
+        return new MemoryContext(baseSessionId, storageSessionId);
+    }
+
+    private Long resolveStorageSessionId(Long baseSessionId, String assistantType) {
+        if (ASSISTANT_TYPE_DICT.equals(assistantType)) {
+            return -baseSessionId;
+        }
+        return baseSessionId;
+    }
+
+    private record MemoryContext(Long baseSessionId, Long storageSessionId) {
     }
 }

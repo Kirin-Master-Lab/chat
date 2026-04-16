@@ -3,7 +3,9 @@ package com.chenliang.chat.aiservice;
 import com.chenliang.chat.tools.DictionaryTools;
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
+import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.spring.AiService;
+import reactor.core.publisher.Flux;
 
 /**
  * 声明式 AI 助手服务接口。
@@ -23,5 +25,7 @@ public interface Assistant {
      * @return AI 生成的响应文本
      */
     @SystemMessage("{{systemMessage}}")
-    String chat(@MemoryId Long sessionId, @dev.langchain4j.service.V("systemMessage") String systemMessage, String userMessage);
+    Flux<String> chat(@MemoryId String memoryId,
+                      @dev.langchain4j.service.V("systemMessage") String systemMessage,
+                      @UserMessage String userMessage);
 }

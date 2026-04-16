@@ -24,5 +24,7 @@ public interface DictAssistant {
      * @return 包含 AI 生成文本片段的异步流 (Flux)
      */
     @SystemMessage("{{systemMessage}}")
-    Flux<String> chat(@MemoryId Long sessionId, @dev.langchain4j.service.V("systemMessage") String systemMessage, @UserMessage String userMessage);
+    Flux<String> chat(@MemoryId String memoryId,
+                      @dev.langchain4j.service.V("systemMessage") String systemMessage,
+                      @UserMessage String userMessage);
 }

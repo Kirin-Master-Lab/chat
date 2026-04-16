@@ -3,24 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>公司业务 AI 助手 - 极智终端</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
+    <title>业务 AI 助手</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyonight-dark.min.css">
-
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.5);
-            --secondary: #a855f7;
-            --accent: #38bdf8;
-            --bg-dark: #0f172a;
-            --panel-bg: rgba(30, 41, 59, 0.7);
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
-            --user-gradient: linear-gradient(135deg, #6366f1, #a855f7);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --bg: #0f172a;
+            --panel: rgba(15, 23, 42, 0.82);
+            --panel-soft: rgba(30, 41, 59, 0.75);
+            --line: rgba(148, 163, 184, 0.18);
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #0ea5e9;
+            --accent-2: #14b8a6;
+            --user: linear-gradient(135deg, #0ea5e9, #14b8a6);
+            --shadow: 0 20px 45px rgba(2, 6, 23, 0.35);
         }
 
         * {
@@ -30,355 +26,248 @@
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            height: 100vh;
-            display: flex;
-            overflow: hidden;
-            position: relative;
+            min-height: 100vh;
+            font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(14, 165, 233, 0.16), transparent 32%),
+                radial-gradient(circle at bottom right, rgba(20, 184, 166, 0.16), transparent 28%),
+                var(--bg);
         }
 
-        /* 主容器 */
-        .main-container {
-            display: flex;
-            flex: 1;
-            height: 100vh;
+        .layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            min-height: 100vh;
         }
 
-        /* 左侧会话侧边栏 */
         .sidebar {
-            width: 280px;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(16px);
-            border-right: 1px solid var(--glass-border);
+            background: var(--panel);
+            border-right: 1px solid var(--line);
+            backdrop-filter: blur(18px);
+            padding: 24px 18px;
             display: flex;
             flex-direction: column;
-            z-index: 100;
+            gap: 18px;
         }
 
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--glass-border);
+        .brand {
+            padding: 8px 10px 2px;
         }
 
-        .new-chat-btn {
-            width: 100%;
-            background: var(--user-gradient);
-            color: white;
-            border: none;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+        .brand h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .brand p {
+            margin-top: 6px;
+            color: var(--muted);
             font-size: 0.9rem;
         }
 
-        .new-chat-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        .primary-btn {
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 0.95rem;
+            color: white;
+            background: var(--user);
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .primary-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
         }
 
         .session-list {
-            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
             overflow-y: auto;
-            padding: 12px;
+            padding-right: 4px;
         }
 
         .session-item {
-            padding: 12px 16px;
-            margin-bottom: 8px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
             border: 1px solid transparent;
+            background: rgba(30, 41, 59, 0.55);
+            border-radius: 14px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: 0.2s ease;
         }
 
-        .session-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: var(--glass-border);
-        }
-
+        .session-item:hover,
         .session-item.active {
-            background: var(--panel-bg);
-            border-color: var(--primary);
-        }
-
-        .session-icon {
-            width: 20px;
-            height: 20px;
-            opacity: 0.7;
-            flex-shrink: 0;
+            border-color: rgba(14, 165, 233, 0.55);
+            background: rgba(14, 165, 233, 0.14);
         }
 
         .session-name {
-            flex: 1;
-            font-size: 0.9rem;
+            font-size: 0.93rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        /* 右侧内容区域 */
-        .content-area {
-            flex: 1;
+        .main {
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            min-width: 0;
         }
 
-        /* 动态背景光效 */
-        .bg-glow {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background:
-                    radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-                    radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.15) 0%, transparent 40%);
-            animation: pulseBg 15s infinite alternate ease-in-out;
-        }
-
-        @keyframes pulseBg {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.1); opacity: 1; }
-        }
-
-        /* 顶部装饰条 */
-        .top-bar {
-            height: 4px;
-            background: var(--user-gradient);
-            width: 100%;
-            position: fixed;
-            top: 0;
-            z-index: 1001;
-        }
-
-        header {
-            padding: 20px 40px;
-            background: rgba(15, 23, 42, 0.6);
+        .header {
+            padding: 24px 28px 18px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(15, 23, 42, 0.55);
             backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--glass-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            z-index: 1000;
+            gap: 18px;
         }
 
-        header .logo {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 600;
-            letter-spacing: -0.5px;
-            background: var(--user-gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .header-copy h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
         }
 
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: var(--user-gradient);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 15px var(--primary-glow);
-        }
-
-        /* 用户权限区域 */
-        .user-auth {
-            display: flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 4px 4px 4px 16px;
-            border-radius: 12px;
-            border: 1px solid var(--glass-border);
-            transition: all 0.3s ease;
-        }
-
-        .user-auth:focus-within {
-            border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
-        }
-
-        .user-auth span {
-            font-size: 0.85rem;
-            color: var(--text-dim);
-            margin-right: 10px;
-        }
-
-        .user-auth input {
-            background: transparent;
-            border: none;
-            color: var(--text-main);
-            padding: 8px 12px;
-            outline: none;
+        .header-copy p {
+            margin-top: 6px;
+            color: var(--muted);
             font-size: 0.9rem;
-            width: 120px;
         }
 
-        /* 聊天容器 */
-        #chat-container {
+        .user-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 10px 14px;
+        }
+
+        .user-box label {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .user-box input {
+            width: 140px;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .assistant-bar {
+            display: flex;
+            gap: 12px;
+            padding: 20px 28px 0;
+            flex-wrap: wrap;
+        }
+
+        .assistant-card {
+            border: 1px solid var(--line);
+            background: var(--panel-soft);
+            color: var(--text);
+            border-radius: 16px;
+            padding: 12px 16px;
+            cursor: pointer;
+            min-width: 180px;
+            transition: 0.2s ease;
+        }
+
+        .assistant-card.active {
+            border-color: rgba(20, 184, 166, 0.55);
+            background: rgba(20, 184, 166, 0.14);
+        }
+
+        .assistant-card strong {
+            display: block;
+            font-size: 0.94rem;
+        }
+
+        .assistant-card span {
+            display: block;
+            margin-top: 4px;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        .chat-container {
             flex: 1;
-            padding: 40px;
             overflow-y: auto;
+            padding: 24px 28px;
             display: flex;
             flex-direction: column;
-            gap: 24px;
-            scroll-behavior: smooth;
-            mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
+            gap: 18px;
         }
 
         .message {
-            max-width: 85%;
+            max-width: min(860px, 88%);
             display: flex;
             flex-direction: column;
-            animation: messageIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        @keyframes messageIn {
-            to { opacity: 1; transform: translateY(0); }
+            gap: 6px;
         }
 
         .message.user {
             align-self: flex-end;
         }
 
-        .message.ai {
+        .message.ai,
+        .message.tool_execution_result {
             align-self: flex-start;
         }
 
         .bubble {
-            padding: 16px 24px;
-            border-radius: 20px;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            position: relative;
-            transition: transform 0.2s;
-            word-break: break-word; /* 防止长文本溢出 */
-        }
-
-        .user .bubble {
-            background: var(--user-gradient);
-            color: white;
-            border-bottom-right-radius: 4px;
-            box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.3);
-        }
-
-        .ai .bubble {
-            background: var(--panel-bg);
-            backdrop-filter: blur(8px);
-            border: 1px solid var(--glass-border);
-            color: var(--text-main);
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .tool_execution_result .bubble {
-            background: rgba(16, 185, 129, 0.1);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            color: #10b981;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
-        }
-
-        /* 消息内部样式 */
-        .bubble p {
-            margin: 8px 0;
+            border-radius: 18px;
+            padding: 14px 18px;
             line-height: 1.7;
+            word-break: break-word;
+            border: 1px solid var(--line);
+            background: var(--panel-soft);
+            box-shadow: var(--shadow);
         }
 
-        .bubble h1, .bubble h2, .bubble h3, .bubble h4, .bubble h5, .bubble h6 {
-            margin: 16px 0 8px 0;
-            font-weight: 600;
-            line-height: 1.4;
-            color: var(--accent);
-        }
-
-        .bubble h1 { font-size: 1.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px; }
-        .bubble h2 { font-size: 1.3rem; }
-        .bubble h3 { font-size: 1.15rem; }
-        .bubble h4 { font-size: 1.05rem; }
-
-        .bubble ul, .bubble ol {
-            margin: 10px 0;
-            padding-left: 28px;
-            line-height: 1.8;
-        }
-
-        .bubble li {
-            margin: 4px 0;
-        }
-
-        .bubble blockquote {
-            margin: 12px 0;
-            padding: 10px 16px;
-            border-left: 4px solid var(--primary);
-            background: rgba(99, 102, 241, 0.1);
-            border-radius: 0 8px 8px 0;
-            font-style: italic;
-            color: var(--text-dim);
-        }
-
-        .bubble strong, .bubble b {
-            color: var(--accent);
-            font-weight: 600;
-        }
-
-        .bubble a {
-            color: var(--primary);
-            text-decoration: none;
-            border-bottom: 1px solid transparent;
-            transition: all 0.2s ease;
-        }
-
-        .bubble a:hover {
-            border-bottom-color: var(--primary);
-        }
-
-        .bubble hr {
+        .message.user .bubble {
             border: none;
-            border-top: 1px solid var(--glass-border);
-            margin: 20px 0;
+            color: white;
+            background: var(--user);
+        }
+
+        .message.tool_execution_result .bubble {
+            background: rgba(20, 184, 166, 0.12);
+            border-color: rgba(20, 184, 166, 0.35);
+        }
+
+        .bubble p,
+        .bubble ul,
+        .bubble ol,
+        .bubble table,
+        .bubble pre,
+        .bubble blockquote {
+            margin: 10px 0;
         }
 
         .bubble pre {
-            background: rgba(0, 0, 0, 0.3);
-            margin: 12px 0;
-            padding: 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            font-family: 'Fira Code', 'Cascadia Code', monospace;
-            font-size: 0.85rem;
             overflow-x: auto;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(2, 6, 23, 0.7);
         }
 
         .bubble code {
-            font-family: inherit;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.9em;
+            background: rgba(2, 6, 23, 0.4);
+            padding: 2px 5px;
+            border-radius: 6px;
         }
 
         .bubble pre code {
@@ -389,122 +278,61 @@
         .bubble table {
             width: 100%;
             border-collapse: collapse;
-            margin: 15px 0;
-            border-radius: 10px;
-            overflow: hidden;
-            font-size: 0.9rem;
             display: block;
             overflow-x: auto;
-            white-space: nowrap;
         }
 
-        .ai .bubble th {
-            background: rgba(99, 102, 241, 0.15);
-            color: var(--accent);
+        .bubble th,
+        .bubble td {
+            border: 1px solid var(--line);
+            padding: 10px 12px;
             text-align: left;
-            padding: 12px;
-            font-weight: 600;
         }
 
-        .ai .bubble td {
-            padding: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .ai .bubble tr:last-child td { border: none; }
-
-        /* 输入区域 - 悬浮式设计 */
-        .input-wrapper {
-            padding: 30px 40px 40px;
-            background: transparent;
-            z-index: 10;
-        }
-
-        .input-area {
-            max-width: 900px;
-            margin: 0 auto;
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(20px);
-            padding: 10px 10px 10px 25px;
-            border-radius: 30px;
-            border: 1px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .input-area:focus-within {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        #message-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-main);
-            font-size: 1rem;
-            outline: none;
-            padding: 10px 0;
-        }
-
-        #message-input::placeholder {
-            color: var(--text-dim);
-        }
-
-        #send-btn {
-            background: var(--user-gradient);
-            color: white;
-            border: none;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-        }
-
-        #send-btn:hover:not(:disabled) {
-            transform: scale(1.1) rotate(-10deg);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6);
-        }
-
-        #send-btn:active { transform: scale(0.95); }
-
-        #send-btn:disabled {
-            background: #475569;
-            box-shadow: none;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-
-        #send-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: white;
-            transition: transform 0.3s ease;
-        }
-
-        #send-btn:hover:not(:disabled) svg {
-            transform: translateX(2px) translateY(-2px);
-        }
-
-        /* 打字光标 */
         .typing-cursor {
             display: inline-block;
             width: 8px;
             height: 18px;
-            background: var(--accent);
             margin-left: 6px;
+            background: var(--accent);
+            animation: blink 0.9s infinite;
             vertical-align: middle;
-            border-radius: 2px;
-            animation: blink 0.8s infinite;
-            box-shadow: 0 0 10px var(--accent);
+            border-radius: 4px;
+        }
+
+        .composer {
+            padding: 18px 28px 28px;
+        }
+
+        .composer-form {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            padding: 10px 12px 10px 18px;
+            backdrop-filter: blur(18px);
+        }
+
+        .composer-form input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .send-btn {
+            border: none;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: var(--user);
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
         }
 
         @keyframes blink {
@@ -512,143 +340,144 @@
             50% { opacity: 1; }
         }
 
-        /* 滚动条 */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+        @media (max-width: 960px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
 
-        /* 响应式 */
-        @media (max-width: 768px) {
-            header { padding: 15px 20px; }
-            #chat-container { padding: 20px; }
-            .input-wrapper { padding: 20px; }
-            .message { max-width: 95%; }
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid var(--line);
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .user-box {
+                width: 100%;
+            }
+
+            .user-box input {
+                width: 100%;
+            }
+
+            .message {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-<div class="bg-glow"></div>
-<div class="top-bar"></div>
-
-<div class="main-container">
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <button class="new-chat-btn" id="new-chat-btn">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="white">
-                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                </svg>
-                新会话
-            </button>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand">
+            <h1>业务 AI 助手</h1>
+            <p>按助手类型隔离上下文与业务能力</p>
         </div>
-        <div class="session-list" id="session-list">
-        </div>
-    </div>
+        <button class="primary-btn" id="new-chat-btn">新建会话</button>
+        <div class="session-list" id="session-list"></div>
+    </aside>
 
-    <div class="content-area">
-        <header>
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                    </svg>
-                </div>
-                亮仔智联 AI
+    <main class="main">
+        <header class="header">
+            <div class="header-copy">
+                <h2>选择助手后开始对话</h2>
+                <p>字典助手走 `DictAssistant`，其他助手走通用 `Assistant`。</p>
             </div>
-            <div class="user-auth">
-                <span>用户姓名</span>
-                <input type="text" id="userId" placeholder="姓名" value="陈亮">
+            <div class="user-box">
+                <label for="userId">用户</label>
+                <input type="text" id="userId" value="chenliang" placeholder="输入 userId">
             </div>
         </header>
 
-        <div id="chat-container">
-            <div class="message ai">
-                <div class="bubble">
-                    <p>探索开始。我是您的生产力伙伴。🚀</p>
-                    <p>确认身份后，请在下方即刻启程。</p>
-                </div>
-            </div>
-        </div>
+        <section class="assistant-bar">
+            <button class="assistant-card active" data-assistant="default" type="button">
+                <strong>通用助手</strong>
+                <span>面向普通业务咨询</span>
+            </button>
+            <button class="assistant-card" data-assistant="dict" type="button">
+                <strong>字典助手</strong>
+                <span>路由到 DictAssistant</span>
+            </button>
+        </section>
 
-        <div class="input-wrapper">
-            <form class="input-area" id="chat-form">
-                <input type="text" id="message-input" placeholder="键入指令或向我提问..." autocomplete="off">
-                <button type="submit" id="send-btn" title="执行 (Enter)">
-                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-                </button>
+        <section class="chat-container" id="chat-container"></section>
+
+        <section class="composer">
+            <form class="composer-form" id="chat-form">
+                <input type="text" id="message-input" autocomplete="off" placeholder="输入消息后发送">
+                <button class="send-btn" id="send-btn" type="submit">↑</button>
             </form>
-        </div>
-    </div>
+        </section>
+    </main>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-
 <script>
-    // 核心修复机制：解决后端将整个Markdown表格压缩成一行且粘连文本的问题
     function preprocessMarkdown(text) {
-        // 如果文本没有表格特征，直接返回
         if (!text.includes('|') || !text.includes('---')) {
             return text;
         }
 
-        // 步骤1：解决行与行粘连，将代表换行的 "||" 替换为 "|\n|"
-        let processed = text.replace(/\|\|/g, '|\n|');
-
-        // 步骤2：解决表格前后与普通文本死死粘连的问题
-        let lines = processed.split('\n');
-        let finalLines = [];
+        const processed = text.replace(/\|\|/g, '|\n|');
+        const lines = processed.split('\n');
+        const finalLines = [];
 
         for (let line of lines) {
             line = line.trim();
-            if (!line) continue;
+            if (!line) {
+                continue;
+            }
 
-            // 如果这一行包含表格特有的管道符 '|'
-            if (line.includes('|')) {
-                let firstPipeIndex = line.indexOf('|');
-                let lastPipeIndex = line.lastIndexOf('|');
-
-                // a. 切断前置粘连 (例如："信息：| 字段" -> 拆成两行)
-                if (firstPipeIndex > 0) {
-                    let prefix = line.substring(0, firstPipeIndex).trim();
-                    if (prefix) finalLines.push(prefix);
-                }
-
-                // b. 提取纯净的表格行本身
-                let tableRow = line.substring(firstPipeIndex, lastPipeIndex + 1);
-                finalLines.push(tableRow);
-
-                // c. 切断后置粘连 (例如："雷蛇等|请您确认" -> 拆成两行)
-                if (lastPipeIndex < line.length - 1) {
-                    let suffix = line.substring(lastPipeIndex + 1).trim();
-                    if (suffix) finalLines.push(suffix);
-                }
-            } else {
-                // 普通文本行直接推入
+            if (!line.includes('|')) {
                 finalLines.push(line);
+                continue;
+            }
+
+            const firstPipeIndex = line.indexOf('|');
+            const lastPipeIndex = line.lastIndexOf('|');
+
+            if (firstPipeIndex > 0) {
+                const prefix = line.substring(0, firstPipeIndex).trim();
+                if (prefix) {
+                    finalLines.push(prefix);
+                }
+            }
+
+            finalLines.push(line.substring(firstPipeIndex, lastPipeIndex + 1));
+
+            if (lastPipeIndex < line.length - 1) {
+                const suffix = line.substring(lastPipeIndex + 1).trim();
+                if (suffix) {
+                    finalLines.push(suffix);
+                }
             }
         }
 
-        // 重新用换行符拼接，此时就是一个极其标准的 Markdown 格式了
         return finalLines.join('\n');
     }
 
-    // 配置 marked
     marked.setOptions({
-        gfm: true, // 开启GitHub flavored markdown，完美支持表格
-        tables: true, // 强制开启表格解析
-        breaks: true, // 支持换行
-        smartLists: true, // 智能列表
-        smartypants: true, // 智能标点符号
-        highlight: function(code, lang) {
+        gfm: true,
+        tables: true,
+        breaks: true,
+        highlight(code, lang) {
             const language = hljs.getLanguage(lang) ? lang : 'plaintext';
             return hljs.highlight(code, { language }).value;
-        },
-        langPrefix: 'hljs language-'
+        }
     });
+
+    const EMPTY_STATE_HTML = `
+        <div class="message ai">
+            <div class="bubble">
+                <p>当前会话还没有这类助手的上下文。</p>
+                <p>你可以直接发送消息，系统会按当前选中的助手路由请求。</p>
+            </div>
+        </div>
+    `;
 
     const chatContainer = document.getElementById('chat-container');
     const chatForm = document.getElementById('chat-form');
@@ -657,10 +486,134 @@
     const sendBtn = document.getElementById('send-btn');
     const sessionList = document.getElementById('session-list');
     const newChatBtn = document.getElementById('new-chat-btn');
+    const assistantCards = document.querySelectorAll('.assistant-card');
 
-    // 全局状态
     let currentSessionId = null;
+    let currentAssistantType = 'default';
     let sessionListData = [];
+
+    function setActiveAssistantCard(assistantType) {
+        assistantCards.forEach(card => {
+            const isActive = (card.dataset.assistant || 'default') === assistantType;
+            card.classList.toggle('active', isActive);
+        });
+    }
+
+    function renderEmptyState() {
+        chatContainer.innerHTML = EMPTY_STATE_HTML;
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function appendMessage(role, text, scroll = true) {
+        const message = document.createElement('div');
+        message.className = `message ${role}`;
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+
+        if (role === 'ai') {
+            bubble.innerHTML = `${marked.parse(preprocessMarkdown(text))}<span class="typing-cursor"></span>`;
+        } else if (role === 'tool_execution_result') {
+            bubble.textContent = text;
+        } else {
+            bubble.textContent = text;
+        }
+
+        message.appendChild(bubble);
+        chatContainer.appendChild(message);
+
+        if (scroll) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        return bubble;
+    }
+
+    async function loadSessionMessages(sessionId) {
+        chatContainer.innerHTML = '';
+
+        try {
+            const response = await fetch(`/session/messages?sessionId=${sessionId}&assistantType=${encodeURIComponent(currentAssistantType)}`);
+            const messages = await response.json();
+
+            if (!Array.isArray(messages) || messages.length === 0) {
+                renderEmptyState();
+                return;
+            }
+
+            messages.forEach(message => appendMessage(message.role, message.content, false));
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        } catch (error) {
+            console.error('加载会话消息失败:', error);
+            renderEmptyState();
+        }
+    }
+
+    function renderSessionList() {
+        sessionList.innerHTML = '';
+
+        sessionListData.forEach(session => {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = `session-item ${session.id === currentSessionId ? 'active' : ''}`;
+            item.innerHTML = `<div class="session-name">${session.sessionName}</div>`;
+            item.addEventListener('click', async () => {
+                currentSessionId = session.id;
+                renderSessionList();
+                await loadSessionMessages(session.id);
+            });
+            sessionList.appendChild(item);
+        });
+    }
+
+    async function createNewSession() {
+        const userId = userIdInput.value.trim();
+        if (!userId) {
+            return;
+        }
+
+        const response = await fetch('/session/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `userId=${encodeURIComponent(userId)}&sessionName=${encodeURIComponent('新会话')}`
+        });
+
+        const newSession = await response.json();
+        currentSessionId = newSession.id;
+        await loadSessionList();
+    }
+
+    async function loadSessionList() {
+        const userId = userIdInput.value.trim();
+        if (!userId) {
+            currentSessionId = null;
+            sessionListData = [];
+            sessionList.innerHTML = '';
+            chatContainer.innerHTML = '';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/session/list?userId=${encodeURIComponent(userId)}`);
+            sessionListData = await response.json();
+
+            if (sessionListData.length === 0) {
+                await createNewSession();
+                return;
+            }
+
+            if (!currentSessionId || !sessionListData.some(session => session.id === currentSessionId)) {
+                currentSessionId = sessionListData[0].id;
+            }
+
+            renderSessionList();
+            await loadSessionMessages(currentSessionId);
+        } catch (error) {
+            console.error('加载会话列表失败:', error);
+        }
+    }
 
     function validateUserId() {
         const userId = userIdInput.value.trim();
@@ -668,155 +621,39 @@
         messageInput.disabled = !isValid;
         sendBtn.disabled = !isValid;
         newChatBtn.disabled = !isValid;
-        if(!isValid) {
-            messageInput.placeholder = "请先配置 Identity 以激活终端";
-        } else {
-            messageInput.placeholder = "键入指令或向我提问...";
-            // 加载用户会话列表
+        messageInput.placeholder = isValid ? '输入消息后发送' : '请先输入 userId';
+
+        if (isValid) {
             loadSessionList();
-        }
-    }
-
-    userIdInput.addEventListener('input', validateUserId);
-    validateUserId();
-
-    // 加载会话列表
-    async function loadSessionList() {
-        const userId = userIdInput.value.trim();
-        if (!userId) return;
-
-        try {
-            const response = await fetch(`/session/list?userId=${encodeURIComponent(userId)}`);
-            sessionListData = await response.json();
-            renderSessionList();
-
-            // 如果有会话，默认选中第一个
-            if (sessionListData.length > 0 && !currentSessionId) {
-                switchSession(sessionListData[0].id);
-            } else if (sessionListData.length === 0) {
-                // 没有会话，创建新会话
-                await createNewSession();
-            }
-        } catch (err) {
-            console.error('加载会话列表失败:', err);
-        }
-    }
-
-    // 渲染会话列表
-    function renderSessionList() {
-        sessionList.innerHTML = '';
-        sessionListData.forEach(session => {
-            const item = document.createElement('div');
-            item.className = `session-item ${session.id === currentSessionId ? 'active' : ''}`;
-            item.dataset.id = session.id;
-
-            item.innerHTML = `
-                    <svg class="session-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
-                    </svg>
-                    <span class="session-name">${session.sessionName}</span>
-                `;
-
-            item.addEventListener('click', () => {
-                switchSession(session.id);
-            });
-
-            sessionList.appendChild(item);
-        });
-    }
-
-    // 切换会话
-    async function switchSession(sessionId) {
-        if (sessionId === currentSessionId) return;
-
-        currentSessionId = sessionId;
-        renderSessionList();
-
-        // 清空当前聊天记录
-        chatContainer.innerHTML = '';
-
-        // 加载会话历史消息
-        try {
-            const response = await fetch(`/session/messages?sessionId=${sessionId}`);
-            const messages = await response.json();
-
-            if (messages.length === 0) {
-                // 没有历史消息，显示欢迎语
-                const msgDiv = document.createElement('div');
-                msgDiv.className = 'message ai';
-                msgDiv.innerHTML = `
-                        <div class="bubble">
-                            <p>探索开始。我是您的生产力伙伴。🚀</p>
-                            <p>确认身份后，请在下方即刻启程。</p>
-                        </div>
-                    `;
-                chatContainer.appendChild(msgDiv);
-            } else {
-                // 渲染历史消息
-                messages.forEach(msg => {
-                    appendMessage(msg.role, msg.content, false);
-                });
-            }
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        } catch (err) {
-            console.error('加载会话历史失败:', err);
-        }
-    }
-
-    // 创建新会话
-    async function createNewSession() {
-        const userId = userIdInput.value.trim();
-        if (!userId) return;
-
-        try {
-            const response = await fetch('/session/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `userId=${encodeURIComponent(userId)}&sessionName=新会话`
-            });
-            const newSession = await response.json();
-            await loadSessionList();
-            switchSession(newSession.id);
-        } catch (err) {
-            console.error('创建会话失败:', err);
-        }
-    }
-
-    newChatBtn.addEventListener('click', createNewSession);
-
-    function appendMessage(role, text, scroll = true) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `message ${role}`;
-
-        const bubble = document.createElement('div');
-        bubble.className = 'bubble';
-
-        if (role === 'ai') {
-            const processedText = preprocessMarkdown(text);
-            bubble.innerHTML = marked.parse(processedText) + '<span class="typing-cursor"></span>';
-        } else if (role === 'tool_execution_result') {
-            // 工具消息直接展示纯文本，不解析markdown
-            bubble.textContent = text;
         } else {
-            bubble.textContent = text;
+            sessionList.innerHTML = '';
+            chatContainer.innerHTML = '';
+            currentSessionId = null;
         }
-
-        msgDiv.appendChild(bubble);
-        chatContainer.appendChild(msgDiv);
-        if (scroll) {
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-        return bubble;
     }
 
-    chatForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    assistantCards.forEach(card => {
+        card.addEventListener('click', async () => {
+            currentAssistantType = card.dataset.assistant || 'default';
+            setActiveAssistantCard(currentAssistantType);
+            if (currentSessionId) {
+                await loadSessionMessages(currentSessionId);
+            }
+        });
+    });
+
+    chatForm.addEventListener('submit', async event => {
+        event.preventDefault();
+
         const message = messageInput.value.trim();
         const userId = userIdInput.value.trim();
+        if (!message || !userId || !currentSessionId) {
+            return;
+        }
 
-        if (!message || !userId || !currentSessionId) return;
+        if (chatContainer.textContent.includes('当前会话还没有这类助手的上下文')) {
+            chatContainer.innerHTML = '';
+        }
 
         appendMessage('user', message);
         messageInput.value = '';
@@ -825,69 +662,67 @@
         let fullText = '';
 
         try {
-            const url = `/streamingAssistant?userId=${encodeURIComponent(userId)}&sessionId=${currentSessionId}&message=${encodeURIComponent(message)}`;
+            const url = `/streamingAssistant?userId=${encodeURIComponent(userId)}&sessionId=${currentSessionId}&message=${encodeURIComponent(message)}&assistantType=${encodeURIComponent(currentAssistantType)}`;
             const response = await fetch(url);
-
             if (!response.ok) {
-                throw new Error(await response.text() || '终端连接中断');
+                throw new Error((await response.text()) || '服务连接中断');
             }
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-
             aiBubble.innerHTML = '';
             let buffer = '';
-            let hasData = false;
 
             while (true) {
                 const { done, value } = await reader.read();
-                if (done) break;
+                if (done) {
+                    break;
+                }
 
-                hasData = true;
                 buffer += decoder.decode(value, { stream: true });
-                let lines = buffer.split('\n');
-                buffer = lines.pop();
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
 
                 for (const line of lines) {
-                    const trimmedLine = line.trim();
-                    if (trimmedLine.startsWith('data:')) {
-                        let data = line.replace(/^data: ?/, '');
-
-                        // 处理后端的转义换行符
-                        data = data.replace(/\\n/g, '\n');
-                        fullText += data;
-
-                        // 【核心修复点】在流式渲染的过程中，实时对全量文本进行格式洗牌与重组
-                        const formattedText = preprocessMarkdown(fullText);
-                        aiBubble.innerHTML = marked.parse(formattedText) + '<span class="typing-cursor"></span>';
-
-                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    const trimmed = line.trim();
+                    if (!trimmed.startsWith('data:')) {
+                        continue;
                     }
+
+                    const data = trimmed.replace(/^data:\s?/, '').replace(/\\n/g, '\n');
+                    fullText += data;
+                    aiBubble.innerHTML = `${marked.parse(preprocessMarkdown(fullText))}<span class="typing-cursor"></span>`;
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
                 }
             }
 
             if (buffer.startsWith('data:')) {
-                let data = buffer.replace(/^data: ?/, '');
-                data = data.replace(/\\n/g, '\n');
-                fullText += data;
+                fullText += buffer.replace(/^data:\s?/, '').replace(/\\n/g, '\n');
             }
 
-            // 最终进行一次格式化渲染
-            setTimeout(() => {
-                const finalProcessed = preprocessMarkdown(fullText);
-                aiBubble.innerHTML = marked.parse(finalProcessed);
-            }, 200);
-
-            const cursor = aiBubble.querySelector('.typing-cursor');
-            if (cursor) cursor.remove();
-
-        } catch (err) {
-            console.error(err);
-            aiBubble.innerHTML = `<div style="padding:15px; border:1px solid rgba(239, 68, 68, 0.2); background:rgba(239, 68, 68, 0.1); color:#f87171; border-radius:12px;">
-                    <strong>系统错误:</strong> ${err.message}
-                </div>`;
+            aiBubble.innerHTML = marked.parse(preprocessMarkdown(fullText));
+        } catch (error) {
+            console.error(error);
+            aiBubble.innerHTML = `
+                <div style="padding:14px 16px; border-radius:14px; border:1px solid rgba(248, 113, 113, 0.35); background:rgba(127, 29, 29, 0.18); color:#fecaca;">
+                    <strong>系统错误:</strong> ${error.message}
+                </div>
+            `;
         }
     });
+
+    newChatBtn.addEventListener('click', async () => {
+        try {
+            await createNewSession();
+        } catch (error) {
+            console.error('创建会话失败:', error);
+        }
+    });
+
+    userIdInput.addEventListener('input', validateUserId);
+
+    setActiveAssistantCard(currentAssistantType);
+    validateUserId();
 </script>
 </body>
 </html>

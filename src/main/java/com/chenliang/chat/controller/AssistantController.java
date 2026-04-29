@@ -25,15 +25,19 @@ public class AssistantController {
             @RequestParam(value = "userId", defaultValue = "user123") String userId,
             @RequestParam(value = "sessionId", required = false) Long sessionId,
             @RequestParam(value = "message", defaultValue = "你好") String message,
-            @RequestParam(value = "assistantType", required = false) String assistantType,
+            @RequestParam(value = "assistantCode", required = false) String assistantCode,
+            @RequestParam(value = "assistantType", required = false) String legacyAssistantType,
             @RequestParam(value = "intent", required = false) String legacyIntent) {
-        return assistantChatService.streamingAssistant(userId, sessionId, message, assistantType, legacyIntent);
+        String resolvedAssistantCode = assistantCode != null ? assistantCode : legacyAssistantType;
+        return assistantChatService.streamingAssistant(userId, sessionId, message, resolvedAssistantCode, legacyIntent);
     }
 
     @GetMapping("/session/messages")
     public List<Map<String, Object>> getSessionMessages(
             @RequestParam Long sessionId,
-            @RequestParam(value = "assistantType", defaultValue = AssistantChatService.ASSISTANT_TYPE_DEFAULT) String assistantType) {
-        return assistantChatService.getSessionMessages(sessionId, assistantType);
+            @RequestParam(value = "assistantCode", required = false) String assistantCode,
+            @RequestParam(value = "assistantType", required = false) String legacyAssistantType) {
+        String resolvedAssistantCode = assistantCode != null ? assistantCode : legacyAssistantType;
+        return assistantChatService.getSessionMessages(sessionId, resolvedAssistantCode);
     }
 }

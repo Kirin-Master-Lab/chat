@@ -1,9 +1,5 @@
 package com.chenliang.chat.aimanage.config;
 
-import com.chenliang.chat.entity.ChatMemoryEntity;
-import com.chenliang.chat.entity.ChatSessionEntity;
-import com.chenliang.chat.mapper.ChatMemoryMapper;
-import com.chenliang.chat.mapper.ChatSessionMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

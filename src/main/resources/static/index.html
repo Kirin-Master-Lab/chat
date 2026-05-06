@@ -3,1527 +3,706 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>业务 AI 助手</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyonight-dark.min.css">
+    <title>需求澄清工作台</title>
     <style>
         :root {
-            --bg: #0b1220;
-            --bg-2: #111b31;
-            --panel: rgba(13, 22, 39, 0.88);
-            --panel-soft: rgba(27, 39, 63, 0.82);
-            --panel-strong: rgba(17, 25, 40, 0.96);
-            --line: rgba(148, 163, 184, 0.2);
-            --text: #e5edf9;
-            --muted: #9fb0ca;
-            --accent: #38bdf8;
-            --accent-2: #2dd4bf;
-            --accent-3: #f59e0b;
-            --danger: #f87171;
-            --success: #34d399;
-            --user: linear-gradient(135deg, #0ea5e9, #14b8a6);
-            --active: linear-gradient(135deg, rgba(56, 189, 248, 0.34), rgba(45, 212, 191, 0.28));
-            --shadow: 0 20px 45px rgba(2, 6, 23, 0.35);
+            --bg: #f3efe6;
+            --paper: rgba(255, 251, 245, 0.94);
+            --panel: rgba(255, 248, 239, 0.88);
+            --line: rgba(124, 92, 62, 0.18);
+            --text: #2e241b;
+            --muted: #6f5b47;
+            --accent: #b85c38;
+            --accent-strong: #8f3b1b;
+            --accent-soft: #f3d7c8;
+            --success: #2f6b4f;
+            --shadow: 0 18px 45px rgba(67, 43, 17, 0.12);
         }
 
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
         }
 
         body {
+            margin: 0;
             min-height: 100vh;
             font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
             color: var(--text);
             background:
-                radial-gradient(circle at top left, rgba(56, 189, 248, 0.15), transparent 30%),
-                radial-gradient(circle at bottom right, rgba(45, 212, 191, 0.13), transparent 28%),
-                linear-gradient(180deg, var(--bg), var(--bg-2));
+                radial-gradient(circle at top left, rgba(184, 92, 56, 0.16), transparent 32%),
+                radial-gradient(circle at bottom right, rgba(143, 59, 27, 0.12), transparent 28%),
+                linear-gradient(180deg, #f8f2e9, #efe6d8);
         }
 
         button,
-        input,
-        select,
         textarea {
             font: inherit;
         }
 
-        button {
-            border: none;
-            cursor: pointer;
+        .page {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 28px 24px 40px;
         }
 
-        .layout {
+        .hero {
             display: grid;
-            grid-template-columns: 320px 1fr;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            background: var(--panel);
-            border-right: 1px solid var(--line);
-            backdrop-filter: blur(18px);
-            padding: 24px 18px;
-            display: flex;
-            flex-direction: column;
+            grid-template-columns: 1.15fr 0.85fr;
             gap: 18px;
+            margin-bottom: 22px;
         }
 
-        .brand {
-            padding: 6px 8px 2px;
+        .hero-card,
+        .summary-strip,
+        .panel,
+        .document-card {
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
         }
 
-        .brand h1 {
-            font-size: 1.28rem;
-            font-weight: 800;
+        .hero-card {
+            padding: 28px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(184, 92, 56, 0.1);
+            color: var(--accent-strong);
+            font-size: 0.82rem;
+            font-weight: 700;
             letter-spacing: 0.02em;
         }
 
-        .brand p {
-            margin-top: 8px;
-            color: var(--muted);
-            font-size: 0.92rem;
-            line-height: 1.6;
+        h1 {
+            margin: 16px 0 10px;
+            font-size: 2.2rem;
+            line-height: 1.15;
         }
 
-        .primary-btn,
-        .secondary-btn,
-        .ghost-btn,
-        .danger-btn {
-            border-radius: 14px;
-            padding: 12px 16px;
-            font-weight: 700;
-            transition: 0.2s ease;
-        }
-
-        .primary-btn {
-            width: 100%;
-            color: white;
-            background: var(--user);
-            box-shadow: var(--shadow);
-        }
-
-        .secondary-btn {
-            color: white;
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.9), rgba(45, 212, 191, 0.82));
-        }
-
-        .ghost-btn {
-            color: var(--text);
-            background: rgba(148, 163, 184, 0.12);
-            border: 1px solid rgba(148, 163, 184, 0.18);
-        }
-
-        .danger-btn {
-            color: #fff5f5;
-            background: rgba(248, 113, 113, 0.18);
-            border: 1px solid rgba(248, 113, 113, 0.24);
-        }
-
-        .primary-btn:disabled,
-        .secondary-btn:disabled,
-        .ghost-btn:disabled,
-        .danger-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        .session-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
-
-        .session-item {
-            width: 100%;
-            border: 1px solid rgba(148, 163, 184, 0.12);
-            background: rgba(30, 41, 59, 0.55);
-            border-radius: 16px;
-            padding: 12px 14px;
-            color: var(--text);
-            text-align: left;
-            position: relative;
-            overflow: hidden;
-            transition: 0.2s ease;
-        }
-
-        .session-item:hover {
-            transform: translateY(-1px);
-            border-color: rgba(56, 189, 248, 0.45);
-            background: rgba(56, 189, 248, 0.15);
-        }
-
-        .session-item.active {
-            background: var(--active);
-            border-color: rgba(56, 189, 248, 0.9);
-            box-shadow: 0 12px 28px rgba(56, 189, 248, 0.18);
-        }
-
-        .session-item.active::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: linear-gradient(180deg, var(--accent), var(--accent-2));
-        }
-
-        .session-index {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 9px;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            background: rgba(56, 189, 248, 0.18);
-            color: #dff4ff;
-            border: 1px solid rgba(56, 189, 248, 0.22);
-            margin-bottom: 8px;
-        }
-
-        .session-item.active .session-index {
-            background: rgba(255, 255, 255, 0.18);
-            border-color: rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-        }
-
-        .session-name {
-            font-size: 0.96rem;
-            font-weight: 700;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: var(--text);
-        }
-
-        .main {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-
-        .header {
-            padding: 24px 28px 18px;
-            border-bottom: 1px solid var(--line);
-            background: rgba(13, 22, 39, 0.62);
-            backdrop-filter: blur(16px);
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 18px;
-        }
-
-        .header-copy h2 {
-            font-size: 1.18rem;
-            font-weight: 800;
-        }
-
-        .header-copy p {
-            margin-top: 6px;
-            color: var(--muted);
-            font-size: 0.92rem;
-            line-height: 1.6;
-        }
-
-        .status-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 12px;
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 12px;
-            border-radius: 999px;
-            border: 1px solid var(--line);
-            background: rgba(30, 41, 59, 0.76);
-            color: var(--text);
-            font-size: 0.82rem;
-        }
-
-        .status-badge strong {
-            color: #ffffff;
-        }
-
-        .user-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--panel-soft);
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            padding: 10px 14px;
-            min-width: 240px;
-        }
-
-        .user-box label {
-            color: var(--muted);
-            font-size: 0.9rem;
-            white-space: nowrap;
-        }
-
-        .user-box input {
-            width: 100%;
-            border: none;
-            outline: none;
-            background: transparent;
-            color: var(--text);
-            font-size: 0.95rem;
-        }
-
-        .assistant-toolbar {
-            padding: 20px 28px 0;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .assistant-toolbar-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .assistant-toolbar-header h3 {
-            font-size: 1rem;
-            font-weight: 800;
-        }
-
-        .assistant-toolbar-header p {
-            color: var(--muted);
-            font-size: 0.88rem;
-        }
-
-        .assistant-bar {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .assistant-card {
-            min-width: 220px;
-            border: 1px solid rgba(148, 163, 184, 0.16);
-            background: var(--panel-soft);
-            color: var(--text);
-            border-radius: 18px;
-            padding: 14px 16px;
-            cursor: pointer;
-            transition: 0.2s ease;
-            text-align: left;
-            position: relative;
-        }
-
-        .assistant-card:hover {
-            transform: translateY(-1px);
-            border-color: rgba(45, 212, 191, 0.45);
-        }
-
-        .assistant-card.active {
-            border-color: rgba(45, 212, 191, 0.92);
-            background: linear-gradient(135deg, rgba(45, 212, 191, 0.24), rgba(56, 189, 248, 0.24));
-            box-shadow: 0 14px 30px rgba(45, 212, 191, 0.16);
-        }
-
-        .assistant-card.active::after {
-            content: "当前选中";
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            padding: 4px 8px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.16);
-            color: #ffffff;
-            font-size: 0.72rem;
-            font-weight: 800;
-        }
-
-        .assistant-card strong {
-            display: block;
-            font-size: 0.97rem;
-            color: #f8fafc;
-        }
-
-        .assistant-card span {
-            display: block;
-            margin-top: 6px;
-            font-size: 0.84rem;
-            color: var(--muted);
-            line-height: 1.5;
-        }
-
-        .assistant-card.active strong,
-        .assistant-card.active span {
-            color: #ffffff;
-        }
-
-        .empty-block {
-            width: 100%;
-            padding: 18px;
-            border: 1px dashed rgba(148, 163, 184, 0.28);
-            border-radius: 18px;
-            background: rgba(15, 23, 42, 0.42);
+        .hero p,
+        .summary-strip p,
+        .panel-intro,
+        .muted {
             color: var(--muted);
             line-height: 1.7;
         }
 
-        .assistant-admin {
-            margin: 0 28px;
-            padding: 22px;
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            border-radius: 22px;
-            background: var(--panel);
-            backdrop-filter: blur(16px);
-            box-shadow: var(--shadow);
+        .summary-strip {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .summary-list {
             display: grid;
-            grid-template-columns: minmax(320px, 480px) 1fr;
-            gap: 22px;
+            gap: 12px;
         }
 
-        .assistant-admin.hidden {
-            display: none;
+        .summary-item {
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: rgba(255, 245, 235, 0.84);
+            border: 1px solid rgba(184, 92, 56, 0.14);
         }
 
-        .panel-title {
-            font-size: 0.98rem;
-            font-weight: 800;
+        .summary-item strong {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .panel {
+            padding: 22px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
             margin-bottom: 14px;
         }
 
-        .assistant-form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        .panel-header h2,
+        .document-card h2 {
+            margin: 0;
+            font-size: 1.08rem;
         }
 
-        .field-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .field.full {
-            grid-column: 1 / -1;
-        }
-
-        .field label {
-            color: var(--muted);
-            font-size: 0.85rem;
+        .badge {
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(184, 92, 56, 0.1);
+            color: var(--accent-strong);
+            font-size: 0.8rem;
             font-weight: 700;
         }
 
-        .field input,
-        .field select,
-        .field textarea {
-            width: 100%;
-            border: 1px solid rgba(148, 163, 184, 0.16);
-            background: rgba(15, 23, 42, 0.85);
-            color: var(--text);
-            border-radius: 14px;
-            padding: 11px 12px;
-            outline: none;
-        }
-
-        .field textarea {
-            min-height: 96px;
-            resize: vertical;
-            line-height: 1.6;
-        }
-
-        .checkbox-row {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            flex-wrap: wrap;
-            margin-top: 2px;
-        }
-
-        .checkbox-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text);
-        }
-
-        .checkbox-item input {
-            width: 16px;
-            height: 16px;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .form-message {
-            min-height: 20px;
-            color: var(--muted);
-            font-size: 0.84rem;
-        }
-
-        .form-message.error {
-            color: #fecaca;
-        }
-
-        .form-message.success {
-            color: #a7f3d0;
-        }
-
-        .manage-list {
+        .chat-log {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            max-height: 360px;
+            gap: 14px;
+            max-height: 600px;
             overflow-y: auto;
-            padding-right: 6px;
-        }
-
-        .manage-card {
-            border: 1px solid rgba(148, 163, 184, 0.14);
-            background: var(--panel-soft);
-            border-radius: 18px;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .manage-card-top {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .manage-card h4 {
-            font-size: 0.96rem;
-            font-weight: 800;
-        }
-
-        .manage-card p {
-            color: var(--muted);
-            font-size: 0.84rem;
-            line-height: 1.6;
-        }
-
-        .tag-row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            border: 1px solid rgba(148, 163, 184, 0.18);
-            background: rgba(15, 23, 42, 0.58);
-            color: var(--text);
-        }
-
-        .tag.default {
-            border-color: rgba(52, 211, 153, 0.34);
-            background: rgba(52, 211, 153, 0.14);
-        }
-
-        .tag.disabled {
-            border-color: rgba(248, 113, 113, 0.32);
-            background: rgba(248, 113, 113, 0.12);
-            color: #fecaca;
-        }
-
-        .manage-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px 28px;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
+            padding-right: 4px;
+            margin-bottom: 16px;
         }
 
         .message {
-            max-width: min(860px, 88%);
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
+            max-width: 90%;
         }
 
         .message.user {
             align-self: flex-end;
         }
 
-        .message.ai,
-        .message.tool_execution_result {
+        .message.assistant {
             align-self: flex-start;
         }
 
+        .role {
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
         .bubble {
-            border-radius: 18px;
-            padding: 14px 18px;
-            line-height: 1.7;
-            word-break: break-word;
+            padding: 16px 18px;
+            border-radius: 20px;
             border: 1px solid var(--line);
-            background: var(--panel-soft);
-            box-shadow: var(--shadow);
+            background: rgba(255, 250, 244, 0.95);
+            line-height: 1.75;
+            white-space: pre-wrap;
         }
 
         .message.user .bubble {
+            background: linear-gradient(135deg, #b85c38, #8f3b1b);
+            color: #fffdf9;
             border: none;
-            color: white;
-            background: var(--user);
-        }
-
-        .message.tool_execution_result .bubble {
-            background: rgba(45, 212, 191, 0.12);
-            border-color: rgba(45, 212, 191, 0.35);
-        }
-
-        .bubble p,
-        .bubble ul,
-        .bubble ol,
-        .bubble table,
-        .bubble pre,
-        .bubble blockquote {
-            margin: 10px 0;
-        }
-
-        .bubble pre {
-            overflow-x: auto;
-            padding: 12px;
-            border-radius: 12px;
-            background: rgba(2, 6, 23, 0.7);
-        }
-
-        .bubble code {
-            background: rgba(2, 6, 23, 0.4);
-            padding: 2px 5px;
-            border-radius: 6px;
-        }
-
-        .bubble pre code {
-            background: transparent;
-            padding: 0;
-        }
-
-        .bubble table {
-            width: 100%;
-            border-collapse: collapse;
-            display: block;
-            overflow-x: auto;
-        }
-
-        .bubble th,
-        .bubble td {
-            border: 1px solid var(--line);
-            padding: 10px 12px;
-            text-align: left;
-        }
-
-        .typing-cursor {
-            display: inline-block;
-            width: 8px;
-            height: 18px;
-            margin-left: 6px;
-            background: var(--accent);
-            animation: blink 0.9s infinite;
-            vertical-align: middle;
-            border-radius: 4px;
         }
 
         .composer {
-            padding: 18px 28px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .composer-form {
+        textarea {
+            width: 100%;
+            min-height: 132px;
+            resize: vertical;
+            padding: 16px 18px;
+            border-radius: 20px;
+            border: 1px solid var(--line);
+            background: rgba(255, 252, 247, 0.94);
+            color: var(--text);
+            outline: none;
+            line-height: 1.7;
+        }
+
+        .actions {
             display: flex;
             gap: 12px;
-            align-items: center;
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 22px;
-            padding: 10px 12px 10px 18px;
-            backdrop-filter: blur(18px);
+            flex-wrap: wrap;
         }
 
-        .composer-form input {
-            flex: 1;
+        button {
             border: none;
-            outline: none;
-            background: transparent;
-            color: var(--text);
+            cursor: pointer;
+            border-radius: 16px;
+            padding: 12px 18px;
+            font-weight: 700;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .primary-btn {
+            color: #fffaf5;
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            box-shadow: 0 14px 32px rgba(143, 59, 27, 0.22);
+        }
+
+        .secondary-btn {
+            color: var(--accent-strong);
+            background: rgba(184, 92, 56, 0.1);
+            border: 1px solid rgba(184, 92, 56, 0.16);
+        }
+
+        .status {
+            min-height: 24px;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        .status.error {
+            color: #b42318;
+        }
+
+        .status.success {
+            color: var(--success);
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .info-card {
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: rgba(255, 245, 235, 0.78);
+            border: 1px solid rgba(184, 92, 56, 0.14);
+        }
+
+        .info-card h3 {
+            margin: 0 0 10px;
+            font-size: 0.98rem;
+        }
+
+        .info-card p {
+            margin: 0;
+            line-height: 1.75;
+            white-space: pre-wrap;
+        }
+
+        .list {
+            margin: 0;
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+
+        .document-card {
+            margin-top: 18px;
+            padding: 22px;
+        }
+
+        .document-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .document-title {
+            margin: 0;
+            font-size: 1.35rem;
+        }
+
+        .doc-overview {
+            margin: 10px 0 0;
+            color: var(--muted);
+            line-height: 1.8;
+        }
+
+        .doc-section {
+            padding: 16px 0;
+            border-top: 1px dashed rgba(124, 92, 62, 0.22);
+        }
+
+        .doc-section:first-of-type {
+            border-top: none;
+            padding-top: 0;
+        }
+
+        .doc-section h3 {
+            margin: 0 0 10px;
             font-size: 1rem;
         }
 
-        .send-btn {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            background: var(--user);
-            color: white;
-            font-size: 1.15rem;
-            font-weight: 800;
+        .doc-section p {
+            margin: 0;
+            line-height: 1.8;
+            white-space: pre-wrap;
         }
 
-        @keyframes blink {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 1; }
+        .placeholder {
+            padding: 18px;
+            border-radius: 18px;
+            border: 1px dashed rgba(124, 92, 62, 0.24);
+            background: rgba(255, 249, 242, 0.7);
+            color: var(--muted);
+            line-height: 1.75;
         }
 
-        @media (max-width: 1180px) {
-            .assistant-admin {
+        @media (max-width: 1080px) {
+            .hero,
+            .workspace {
                 grid-template-columns: 1fr;
             }
         }
 
-        @media (max-width: 960px) {
-            .layout {
-                grid-template-columns: 1fr;
+        @media (max-width: 720px) {
+            .page {
+                padding: 18px 14px 28px;
             }
 
-            .sidebar {
-                border-right: none;
-                border-bottom: 1px solid var(--line);
+            .hero-card,
+            .summary-strip,
+            .panel,
+            .document-card {
+                border-radius: 20px;
             }
 
-            .header {
-                flex-direction: column;
-            }
-
-            .user-box {
-                width: 100%;
+            h1 {
+                font-size: 1.8rem;
             }
 
             .message {
                 max-width: 100%;
             }
-
-            .field-grid {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
 <body>
-<div class="layout">
-    <aside class="sidebar">
-        <div class="brand">
-            <h1>业务 AI 助手</h1>
-            <p>会话和助手已隔离。上方助手来自数据库配置，页面里可以直接维护助手信息并切换使用。</p>
+<div class="page">
+    <section class="hero">
+        <div class="hero-card">
+            <div class="eyebrow">Requirement Workshop</div>
+            <h1>把零碎需求聊清楚，再自动整理成 Java 研发文档</h1>
+            <p>
+                这里不是普通聊天窗口。你可以持续输入不完整的产品想法、场景、限制和目标，
+                AI 会基于缺失信息主动追问，并把结论沉淀成一份研发可直接阅读的输入稿。
+            </p>
         </div>
-        <button class="primary-btn" id="new-chat-btn" type="button">新建会话</button>
-        <div class="session-list" id="session-list"></div>
-    </aside>
-
-    <main class="main">
-        <header class="header">
-            <div class="header-copy">
-                <h2>选择助手后开始对话</h2>
-                <p>助手卡片、提示词和能力类型都来自数据库配置；选择不同助手后，会话记忆会按当前助手隔离。</p>
-                <div class="status-row">
-                    <div class="status-badge" id="current-session-badge">当前会话: <strong>未选择</strong></div>
-                    <div class="status-badge" id="current-assistant-badge">当前助手: <strong>未配置</strong></div>
+        <div class="summary-strip">
+            <div>
+                <strong>适合输入的内容</strong>
+                <p>目标用户、业务场景、页面动作、审批流、字段、接口诉求、边界条件、已有系统限制。</p>
+            </div>
+            <div class="summary-list">
+                <div class="summary-item">
+                    <strong>1. 先聊碎片需求</strong>
+                    <span class="muted">不用一次说完整，先把你想到的点扔进来。</span>
+                </div>
+                <div class="summary-item">
+                    <strong>2. AI 逐轮反问</strong>
+                    <span class="muted">优先追问会影响 Java 研发设计的关键缺口。</span>
+                </div>
+                <div class="summary-item">
+                    <strong>3. 生成研发文档</strong>
+                    <span class="muted">沉淀为背景目标、功能范围、流程、数据、风险和待确认项。</span>
                 </div>
             </div>
-            <div class="user-box">
-                <label for="userId">用户</label>
-                <input type="text" id="userId" value="chenliang" placeholder="输入 userId">
-            </div>
-        </header>
+        </div>
+    </section>
 
-        <section class="assistant-toolbar">
-            <div class="assistant-toolbar-header">
-                <div>
-                    <h3>助手选择</h3>
-                    <p>上方显示已启用的助手，下面可新增、编辑、删除助手配置。</p>
+    <section class="workspace">
+        <div class="panel">
+            <div class="panel-header">
+                <h2>需求澄清对话</h2>
+                <span class="badge" id="stage-badge">澄清中</span>
+            </div>
+            <p class="panel-intro">先把你当前掌握的产品点输入进来。每轮回答后，右侧会同步更新当前理解和缺失项。</p>
+            <div class="chat-log" id="chat-log"></div>
+            <div class="composer">
+                <textarea id="message-input" placeholder="例如：我想做一个对话页面，产品经理可以先零碎输入需求点，AI 自动追问，最后整理成 Java 研发文档。第一版先不考虑权限系统。"></textarea>
+                <div class="actions">
+                    <button class="primary-btn" id="send-btn" type="button">继续澄清</button>
+                    <button class="secondary-btn" id="doc-btn" type="button">生成研发文档</button>
+                    <button class="secondary-btn" id="new-session-btn" type="button">新建会话</button>
                 </div>
-                <button class="ghost-btn" id="toggle-admin-btn" type="button">展开助手维护</button>
+                <div class="status" id="status"></div>
             </div>
-            <div class="assistant-bar" id="assistant-bar"></div>
-        </section>
+        </div>
 
-        <section class="assistant-admin hidden" id="assistant-admin">
-            <div>
-                <div class="panel-title">助手维护</div>
-                <form class="assistant-form" id="assistant-form">
-                    <input type="hidden" id="assistant-id">
-                    <div class="field-grid">
-                        <div class="field">
-                            <label for="assistant-code">助手编码</label>
-                            <input type="text" id="assistant-code" placeholder="例如: general">
-                        </div>
-                        <div class="field">
-                            <label for="assistant-name">助手名称</label>
-                            <input type="text" id="assistant-name" placeholder="例如: 通用助手">
-                        </div>
-                        <div class="field full">
-                            <label for="assistant-desc">助手描述</label>
-                            <textarea id="assistant-desc" placeholder="页面上展示给用户看的助手说明"></textarea>
-                        </div>
-                        <div class="field">
-                            <label for="assistant-kind">能力类型</label>
-                            <input type="text" id="assistant-kind" list="assistant-kind-options" placeholder="例如: GENERAL、DICT、WORKFLOW">
-                            <datalist id="assistant-kind-options">
-                                <option value="GENERAL"></option>
-                                <option value="DICT"></option>
-                                <option value="MAP"></option>
-                            </datalist>
-                        </div>
-                        <div class="field">
-                            <label for="assistant-sort">排序值</label>
-                            <input type="number" id="assistant-sort" value="10">
-                        </div>
-                        <div class="field full">
-                            <label for="assistant-prompt">系统提示词</label>
-                            <textarea id="assistant-prompt" placeholder="这里维护当前助手的系统提示词"></textarea>
-                        </div>
+        <div>
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>当前沉淀</h2>
+                    <span class="badge" id="session-badge">会话初始化中</span>
+                </div>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>当前理解</h3>
+                        <p id="current-understanding">正在初始化需求工作台...</p>
                     </div>
-                    <div class="checkbox-row">
-                        <label class="checkbox-item" for="assistant-enabled">
-                            <input type="checkbox" id="assistant-enabled" checked>
-                            <span>启用</span>
-                        </label>
-                        <label class="checkbox-item" for="assistant-default">
-                            <input type="checkbox" id="assistant-default">
-                            <span>设为默认助手</span>
-                        </label>
+                    <div class="info-card">
+                        <h3>待补充信息</h3>
+                        <ol class="list" id="missing-list"></ol>
                     </div>
-                    <div class="form-actions">
-                        <button class="secondary-btn" id="assistant-save-btn" type="submit">保存助手</button>
-                        <button class="ghost-btn" id="assistant-reset-btn" type="button">重置表单</button>
+                    <div class="info-card">
+                        <h3>下一轮建议问题</h3>
+                        <ol class="list" id="question-list"></ol>
                     </div>
-                    <div class="form-message" id="assistant-form-message"></div>
-                </form>
+                </div>
             </div>
 
-            <div>
-                <div class="panel-title">已维护助手</div>
-                <div class="manage-list" id="assistant-manage-list"></div>
+            <div class="document-card">
+                <div class="document-head">
+                    <div>
+                        <h2>研发文档预览</h2>
+                        <p class="doc-overview">当信息足够时，点击“生成研发文档”即可整理出研发输入稿。</p>
+                    </div>
+                    <span class="badge" id="document-badge">未生成</span>
+                </div>
+                <div id="document-container" class="placeholder">
+                    当前还没有生成研发文档。先完成几轮需求澄清，再生成文档会更有价值。
+                </div>
             </div>
-        </section>
-
-        <section class="chat-container" id="chat-container"></section>
-
-        <section class="composer">
-            <form class="composer-form" id="chat-form">
-                <input type="text" id="message-input" autocomplete="off" placeholder="输入消息后发送">
-                <button class="send-btn" id="send-btn" type="submit">→</button>
-            </form>
-        </section>
-    </main>
+        </div>
+    </section>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>
-    function preprocessMarkdown(text) {
-        if (!text.includes('|') || !text.includes('---')) {
-            return text;
-        }
+    const chatLog = document.getElementById('chat-log');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const docBtn = document.getElementById('doc-btn');
+    const newSessionBtn = document.getElementById('new-session-btn');
+    const statusEl = document.getElementById('status');
+    const stageBadge = document.getElementById('stage-badge');
+    const sessionBadge = document.getElementById('session-badge');
+    const documentBadge = document.getElementById('document-badge');
+    const currentUnderstandingEl = document.getElementById('current-understanding');
+    const missingList = document.getElementById('missing-list');
+    const questionList = document.getElementById('question-list');
+    const documentContainer = document.getElementById('document-container');
 
-        const processed = text.replace(/\|\|/g, '|\n|');
-        const lines = processed.split('\n');
-        const finalLines = [];
+    let currentSessionId = '';
+    let currentDraft = null;
 
-        for (let line of lines) {
-            line = line.trim();
-            if (!line) {
-                continue;
-            }
-
-            if (!line.includes('|')) {
-                finalLines.push(line);
-                continue;
-            }
-
-            const firstPipeIndex = line.indexOf('|');
-            const lastPipeIndex = line.lastIndexOf('|');
-
-            if (firstPipeIndex > 0) {
-                const prefix = line.substring(0, firstPipeIndex).trim();
-                if (prefix) {
-                    finalLines.push(prefix);
-                }
-            }
-
-            finalLines.push(line.substring(firstPipeIndex, lastPipeIndex + 1));
-
-            if (lastPipeIndex < line.length - 1) {
-                const suffix = line.substring(lastPipeIndex + 1).trim();
-                if (suffix) {
-                    finalLines.push(suffix);
-                }
-            }
-        }
-
-        return finalLines.join('\n');
+    function setStatus(message, type = '') {
+        statusEl.textContent = message || '';
+        statusEl.className = `status ${type}`.trim();
     }
 
-    function escapeHtml(text) {
-        return String(text ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
-    async function parseErrorMessage(response) {
-        const contentType = response.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-            const data = await response.json().catch(() => ({}));
-            return data.message || data.error || '请求失败';
-        }
-
-        const text = await response.text();
-        return text || '请求失败';
+    function escapeHtml(value) {
+        return (value || '').replace(/[&<>"']/g, char => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[char]));
     }
 
     async function fetchJson(url, options = {}) {
         const response = await fetch(url, options);
         if (!response.ok) {
-            throw new Error(await parseErrorMessage(response));
-        }
-        if (response.status === 204) {
-            return null;
-        }
-
-        const text = await response.text();
-        if (!text) {
-            return null;
-        }
-
-        try {
-            return JSON.parse(text);
-        } catch (error) {
-            return text;
-        }
-    }
-
-    function getEmptyStateHtml() {
-        if (!currentAssistantCode) {
-            return `
-                <div class="message ai">
-                    <div class="bubble">
-                        <p>当前没有可用助手。</p>
-                        <p>请先在“助手维护”中新增并启用助手配置。</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        return `
-            <div class="message ai">
-                <div class="bubble">
-                    <p>当前会话下还没有“${escapeHtml(currentAssistantName)}”的历史消息。</p>
-                    <p>你可以直接发送消息，系统会按当前选中的助手发起请求。</p>
-                </div>
-            </div>
-        `;
-    }
-
-    marked.setOptions({
-        gfm: true,
-        tables: true,
-        breaks: true,
-        highlight(code, lang) {
-            const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
-            return hljs.highlight(code, { language }).value;
-        }
-    });
-
-    const DEFAULT_GENERAL_PROMPT = '你是一个通用聊天助手，只负责自然对话、闲聊、常识答疑和通用建议。不要主动执行或指导字典维护、业务配置、数据创建、系统管理等具体业务操作。如果用户明确要处理某项业务，请提醒他切换到对应的业务助手。';
-    const DEFAULT_DICT_PROMPT = `你是专业的“字典管理专家”。请严格遵循以下规则：
-1. 当用户提出字典维护需求时，先确认字典含义，再整理 dictCode、dictName、description 供用户确认。
-2. 用户确认主项后，你必须先调用 saveDictInfo 工具。只有工具成功时，才能告知用户主项创建成功。
-3. 当用户提供子项描述后，你需要推理 itemCode、zhCN、enUS、itemSort，并展示表格让用户确认。
-4. 用户确认子项后，你需要逐条调用 saveDictItem 工具。只有工具成功时，才能告知用户子项创建成功。
-5. 如果工具返回失败或异常，必须如实反馈失败原因，不得虚报成功。`;
-    const DEFAULT_MAP_PROMPT = `你是专业的“地图与出行助手”。请严格遵循以下规则：
-1. 当用户要查地点、地址、经纬度、路线、周边信息或地图链接时，优先调用百度地图工具，不要凭空编造位置数据。
-2. 需要路线规划时，先确认起点、终点和出行方式；如果缺少坐标，先调用地点检索或地理编码工具补齐坐标。
-3. 当返回多个地点结果时，先简明列出候选项，必要时请用户确认后再继续。
-4. 当用户要求地图链接或地图图片时，调用静态地图工具返回可直接打开的链接。
-5. 如果百度地图接口失败、AK 未配置或结果为空，必须明确说明失败原因。`;
-
-    const chatContainer = document.getElementById('chat-container');
-    const chatForm = document.getElementById('chat-form');
-    const messageInput = document.getElementById('message-input');
-    const userIdInput = document.getElementById('userId');
-    const sendBtn = document.getElementById('send-btn');
-    const sessionList = document.getElementById('session-list');
-    const newChatBtn = document.getElementById('new-chat-btn');
-    const currentSessionBadge = document.getElementById('current-session-badge');
-    const currentAssistantBadge = document.getElementById('current-assistant-badge');
-    const assistantBar = document.getElementById('assistant-bar');
-    const assistantAdmin = document.getElementById('assistant-admin');
-    const toggleAdminBtn = document.getElementById('toggle-admin-btn');
-    const assistantManageList = document.getElementById('assistant-manage-list');
-    const assistantForm = document.getElementById('assistant-form');
-    const assistantFormMessage = document.getElementById('assistant-form-message');
-    const assistantIdInput = document.getElementById('assistant-id');
-    const assistantCodeInput = document.getElementById('assistant-code');
-    const assistantNameInput = document.getElementById('assistant-name');
-    const assistantDescInput = document.getElementById('assistant-desc');
-    const assistantKindInput = document.getElementById('assistant-kind');
-    const assistantKindOptions = document.getElementById('assistant-kind-options');
-    const assistantSortInput = document.getElementById('assistant-sort');
-    const assistantPromptInput = document.getElementById('assistant-prompt');
-    const assistantEnabledInput = document.getElementById('assistant-enabled');
-    const assistantDefaultInput = document.getElementById('assistant-default');
-    const assistantResetBtn = document.getElementById('assistant-reset-btn');
-
-    let currentSessionId = null;
-    let currentAssistantCode = '';
-    let currentAssistantName = '未配置';
-    let sessionListData = [];
-    let enabledAssistants = [];
-    let managedAssistants = [];
-
-    function normalizeAssistantKind(value) {
-        return String(value || '').trim().toUpperCase();
-    }
-
-    function renderAssistantKindOptions() {
-        const kinds = new Set(['GENERAL', 'DICT', 'MAP']);
-        managedAssistants.forEach(assistant => {
-            const kind = normalizeAssistantKind(assistant.assistantKind);
-            if (kind) {
-                kinds.add(kind);
+            let message = '请求失败';
+            try {
+                message = await response.text();
+            } catch (error) {
+                console.error(error);
             }
+            throw new Error(message || '请求失败');
+        }
+        return response.json();
+    }
+
+    function renderList(element, items, fallback) {
+        const safeItems = Array.isArray(items) ? items : [];
+        element.innerHTML = '';
+        if (safeItems.length === 0) {
+            const li = document.createElement('li');
+            li.textContent = fallback;
+            element.appendChild(li);
+            return;
+        }
+        safeItems.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            element.appendChild(li);
         });
-
-        assistantKindOptions.innerHTML = Array.from(kinds)
-            .sort((left, right) => left.localeCompare(right))
-            .map(kind => `<option value="${escapeHtml(kind)}"></option>`)
-            .join('');
     }
 
-    function setFormMessage(message, type = '') {
-        assistantFormMessage.textContent = message || '';
-        assistantFormMessage.className = `form-message ${type}`.trim();
-    }
-
-    function getSuggestedPrompt() {
-        const assistantCode = assistantCodeInput.value.trim().toLowerCase();
-        const assistantKind = normalizeAssistantKind(assistantKindInput.value);
-        if (assistantCode === 'general') {
-            return DEFAULT_GENERAL_PROMPT;
-        }
-        if (assistantCode === 'dict' || assistantKind === 'DICT') {
-            return DEFAULT_DICT_PROMPT;
-        }
-        if (assistantCode === 'map' || assistantKind === 'MAP') {
-            return DEFAULT_MAP_PROMPT;
-        }
-        return '';
-    }
-
-    function applySuggestedPrompt(force = false) {
-        const prompt = getSuggestedPrompt();
-        if (!prompt) {
-            return;
-        }
-        if (force || !assistantPromptInput.value.trim()) {
-            assistantPromptInput.value = prompt;
-        }
-    }
-
-    function resetAssistantForm() {
-        assistantIdInput.value = '';
-        assistantCodeInput.value = '';
-        assistantCodeInput.disabled = false;
-        assistantNameInput.value = '';
-        assistantDescInput.value = '';
-        assistantKindInput.value = 'GENERAL';
-        assistantSortInput.value = '10';
-        assistantPromptInput.value = '';
-        assistantEnabledInput.checked = true;
-        assistantDefaultInput.checked = false;
-        applySuggestedPrompt(true);
-        setFormMessage('');
-    }
-
-    function fillAssistantForm(assistant) {
-        assistantIdInput.value = assistant.id || '';
-        assistantCodeInput.value = assistant.assistantCode || '';
-        assistantCodeInput.disabled = Boolean(assistant.id);
-        assistantNameInput.value = assistant.assistantName || '';
-        assistantDescInput.value = assistant.assistantDesc || '';
-        assistantKindInput.value = normalizeAssistantKind(assistant.assistantKind) || 'GENERAL';
-        assistantSortInput.value = String(assistant.sortOrder ?? 0);
-        assistantPromptInput.value = assistant.systemPrompt || '';
-        assistantEnabledInput.checked = Number(assistant.enabled) === 1;
-        assistantDefaultInput.checked = Number(assistant.isDefault) === 1;
-        setFormMessage('');
-    }
-
-    function updateAssistantBadge() {
-        currentAssistantBadge.innerHTML = `当前助手: <strong>${escapeHtml(currentAssistantName || '未配置')}</strong>`;
-    }
-
-    function updateSessionBadge() {
-        const activeSession = sessionListData.find(session => session.id === currentSessionId);
-        if (!activeSession) {
-            currentSessionBadge.innerHTML = '当前会话: <strong>未选择</strong>';
-            return;
-        }
-        currentSessionBadge.innerHTML = `当前会话: <strong>${escapeHtml(activeSession.sessionName)}</strong>`;
-    }
-
-    function renderEmptyState() {
-        chatContainer.innerHTML = getEmptyStateHtml();
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    function appendMessage(role, text, scroll = true) {
+    function appendMessage(role, content) {
         const message = document.createElement('div');
         message.className = `message ${role}`;
 
+        const roleEl = document.createElement('div');
+        roleEl.className = 'role';
+        roleEl.textContent = role === 'user' ? '你输入的需求' : 'AI 澄清与追问';
+
         const bubble = document.createElement('div');
         bubble.className = 'bubble';
+        bubble.textContent = content;
 
-        if (role === 'ai') {
-            bubble.innerHTML = `${marked.parse(preprocessMarkdown(text))}<span class="typing-cursor"></span>`;
-        } else {
-            bubble.textContent = text;
-        }
-
+        message.appendChild(roleEl);
         message.appendChild(bubble);
-        chatContainer.appendChild(message);
-
-        if (scroll) {
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        return bubble;
+        chatLog.appendChild(message);
+        chatLog.scrollTop = chatLog.scrollHeight;
     }
 
-    function syncCurrentAssistant() {
-        if (enabledAssistants.length === 0) {
-            currentAssistantCode = '';
-            currentAssistantName = '未配置';
-            updateAssistantBadge();
+    function renderConversation(conversation) {
+        chatLog.innerHTML = '';
+        if (!Array.isArray(conversation) || conversation.length === 0) {
+            appendMessage('assistant', '请先输入你的产品需求碎片，我会开始澄清并持续追问。');
             return;
         }
 
-        const existing = enabledAssistants.find(item => item.assistantCode === currentAssistantCode);
-        const nextAssistant = existing
-            || enabledAssistants.find(item => Number(item.isDefault) === 1)
-            || enabledAssistants[0];
-
-        currentAssistantCode = nextAssistant.assistantCode;
-        currentAssistantName = nextAssistant.assistantName;
-        updateAssistantBadge();
-    }
-
-    function renderAssistantCards() {
-        assistantBar.innerHTML = '';
-
-        if (enabledAssistants.length === 0) {
-            assistantBar.innerHTML = '<div class="empty-block">当前没有已启用的助手。请展开“助手维护”，新增或启用至少一个助手。</div>';
-            return;
-        }
-
-        enabledAssistants.forEach(assistant => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = `assistant-card ${assistant.assistantCode === currentAssistantCode ? 'active' : ''}`;
-            button.innerHTML = `
-                <strong>${escapeHtml(assistant.assistantName)}</strong>
-                <span>${escapeHtml(assistant.assistantDesc || '暂无描述')}</span>
-            `;
-            button.addEventListener('click', async () => {
-                currentAssistantCode = assistant.assistantCode;
-                currentAssistantName = assistant.assistantName;
-                renderAssistantCards();
-                updateAssistantBadge();
-                if (currentSessionId) {
-                    await loadSessionMessages(currentSessionId);
-                } else {
-                    renderEmptyState();
-                }
-            });
-            assistantBar.appendChild(button);
+        conversation.forEach(turn => {
+            const role = turn.role === 'user' ? 'user' : 'assistant';
+            appendMessage(role, turn.content || '');
         });
     }
 
-    function renderManageAssistants() {
-        assistantManageList.innerHTML = '';
-
-        if (managedAssistants.length === 0) {
-            assistantManageList.innerHTML = '<div class="empty-block">还没有维护任何助手，先创建一个可用助手。</div>';
+    function renderDocument(documentData) {
+        if (!documentData) {
+            documentBadge.textContent = '未生成';
+            documentContainer.className = 'placeholder';
+            documentContainer.innerHTML = '当前还没有生成研发文档。先完成几轮需求澄清，再生成文档会更有价值。';
             return;
         }
 
-        managedAssistants.forEach(assistant => {
-            const item = document.createElement('div');
-            item.className = 'manage-card';
-            item.innerHTML = `
-                <div class="manage-card-top">
-                    <div>
-                        <h4>${escapeHtml(assistant.assistantName)}</h4>
-                        <p>${escapeHtml(assistant.assistantCode)} · ${escapeHtml(assistant.assistantDesc || '暂无描述')}</p>
-                    </div>
-                </div>
-                <div class="tag-row">
-                    <span class="tag">${escapeHtml(assistant.assistantKind)}</span>
-                    <span class="tag">排序 ${escapeHtml(assistant.sortOrder ?? 0)}</span>
-                    ${Number(assistant.isDefault) === 1 ? '<span class="tag default">默认</span>' : ''}
-                    ${Number(assistant.enabled) === 1 ? '<span class="tag">已启用</span>' : '<span class="tag disabled">已停用</span>'}
-                </div>
-                <div class="manage-actions">
-                    <button class="ghost-btn" type="button" data-action="edit">编辑</button>
-                    <button class="danger-btn" type="button" data-action="delete">删除</button>
+        documentBadge.textContent = '已生成';
+        documentContainer.className = '';
+
+        const sections = Array.isArray(documentData.sections) ? documentData.sections : [];
+        const openQuestions = Array.isArray(documentData.openQuestions) ? documentData.openQuestions : [];
+
+        let html = `
+            <div>
+                <h3 class="document-title">${escapeHtml(documentData.title || '未命名需求')}</h3>
+                <p class="doc-overview">${escapeHtml(documentData.overview || '')}</p>
+            </div>
+        `;
+
+        sections.forEach(section => {
+            html += `
+                <div class="doc-section">
+                    <h3>${escapeHtml(section.title || '')}</h3>
+                    <p>${escapeHtml(section.content || '')}</p>
                 </div>
             `;
-
-            item.querySelector('[data-action="edit"]').addEventListener('click', () => {
-                fillAssistantForm(assistant);
-                if (assistantAdmin.classList.contains('hidden')) {
-                    toggleAdminPanel(true);
-                }
-            });
-
-            item.querySelector('[data-action="delete"]').addEventListener('click', async () => {
-                const confirmed = window.confirm(`确认删除助手“${assistant.assistantName}”吗？`);
-                if (!confirmed) {
-                    return;
-                }
-
-                try {
-                    await fetchJson(`/assistants/${assistant.id}`, { method: 'DELETE' });
-                    setFormMessage('助手已删除', 'success');
-                    await loadAssistants();
-                    if (currentSessionId) {
-                        await loadSessionMessages(currentSessionId);
-                    } else {
-                        renderEmptyState();
-                    }
-                } catch (error) {
-                    setFormMessage(error.message, 'error');
-                }
-            });
-
-            assistantManageList.appendChild(item);
         });
-    }
 
-    function getSessionMetaLabel(session) {
-        if (Number(session.isDefault) === 1) {
-            return '默认会话';
-        }
-        return `ID: ${session.id}`;
-    }
-
-    function renderSessionList() {
-        sessionList.innerHTML = '';
-
-        sessionListData.forEach(session => {
-            const item = document.createElement('button');
-            item.type = 'button';
-            item.className = `session-item ${session.id === currentSessionId ? 'active' : ''}`;
-            item.innerHTML = `
-                <div class="session-name">${escapeHtml(session.sessionName)}</div>
+        if (openQuestions.length > 0) {
+            html += `
+                <div class="doc-section">
+                    <h3>7. 待确认项</h3>
+                    <p>${escapeHtml(openQuestions.map((item, index) => `${index + 1}. ${item}`).join('\n'))}</p>
+                </div>
             `;
-            item.addEventListener('click', async () => {
-                currentSessionId = session.id;
-                renderSessionList();
-                updateSessionBadge();
-                await loadSessionMessages(session.id);
-            });
-            sessionList.appendChild(item);
+        }
+
+        documentContainer.innerHTML = html;
+    }
+
+    function renderDraft(draft) {
+        currentDraft = draft;
+        currentSessionId = draft.sessionId;
+
+        stageBadge.textContent = draft.stage === 'document_ready' ? '文档已生成' : '澄清中';
+        sessionBadge.textContent = `会话 ${draft.sessionId.slice(0, 8)}`;
+
+        renderConversation(draft.conversation);
+
+        const guidance = draft.guidance || {};
+        currentUnderstandingEl.textContent = guidance.currentUnderstanding || '暂无总结';
+        renderList(missingList, guidance.missingInformation, '当前没有待补充信息');
+        renderList(questionList, guidance.nextQuestions, '当前没有建议问题');
+        renderDocument(draft.document);
+    }
+
+    async function createSession() {
+        setStatus('正在创建需求会话...');
+        const response = await fetchJson('/api/requirement-workshop/sessions', {
+            method: 'POST'
         });
-
-        updateSessionBadge();
+        renderDraft(response.draft);
+        setStatus('已创建新的需求会话。', 'success');
     }
 
-    async function loadAssistants() {
-        const [enabledList, manageList] = await Promise.all([
-            fetchJson('/assistants/enabled'),
-            fetchJson('/assistants/manage/list')
-        ]);
-
-        enabledAssistants = Array.isArray(enabledList) ? enabledList : [];
-        managedAssistants = Array.isArray(manageList) ? manageList : [];
-        renderAssistantKindOptions();
-        syncCurrentAssistant();
-        renderAssistantCards();
-        renderManageAssistants();
-        updateAssistantBadge();
-    }
-
-    async function loadSessionMessages(sessionId) {
-        if (!currentAssistantCode) {
-            renderEmptyState();
-            return;
-        }
-
-        chatContainer.innerHTML = '';
-
-        try {
-            const messages = await fetchJson(`/session/messages?sessionId=${sessionId}&assistantCode=${encodeURIComponent(currentAssistantCode)}`);
-            if (!Array.isArray(messages) || messages.length === 0) {
-                renderEmptyState();
-                return;
-            }
-
-            messages.forEach(message => appendMessage(message.role, message.content, false));
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        } catch (error) {
-            console.error('加载会话消息失败:', error);
-            renderEmptyState();
-        }
-    }
-
-    async function createNewSession() {
-        const userId = userIdInput.value.trim();
-        if (!userId) {
-            return;
-        }
-
-        const response = await fetchJson('/session/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: `userId=${encodeURIComponent(userId)}&sessionName=${encodeURIComponent('新会话')}`
-        });
-
-        currentSessionId = response.id;
-        await loadSessionList();
-    }
-
-    async function loadSessionList() {
-        const userId = userIdInput.value.trim();
-        if (!userId) {
-            currentSessionId = null;
-            sessionListData = [];
-            sessionList.innerHTML = '';
-            chatContainer.innerHTML = '';
-            updateSessionBadge();
-            return;
-        }
-
-        try {
-            const response = await fetchJson(`/session/list?userId=${encodeURIComponent(userId)}`);
-            sessionListData = Array.isArray(response) ? response : [];
-
-            if (sessionListData.length === 0) {
-                await createNewSession();
-                return;
-            }
-
-            if (!currentSessionId || !sessionListData.some(session => session.id === currentSessionId)) {
-                currentSessionId = sessionListData[0].id;
-            }
-
-            renderSessionList();
-            await loadSessionMessages(currentSessionId);
-        } catch (error) {
-            console.error('加载会话列表失败:', error);
-        }
-    }
-
-    async function validateUserId() {
-        const userId = userIdInput.value.trim();
-        const hasAssistant = Boolean(currentAssistantCode);
-        const isValid = userId.length > 0 && hasAssistant;
-
-        messageInput.disabled = !isValid;
-        sendBtn.disabled = !isValid;
-        newChatBtn.disabled = userId.length === 0;
-        messageInput.placeholder = userId.length === 0
-            ? '请先输入 userId'
-            : hasAssistant
-                ? '输入消息后发送'
-                : '请先维护并启用助手';
-
-        if (userId.length > 0) {
-            await loadSessionList();
-        } else {
-            sessionList.innerHTML = '';
-            chatContainer.innerHTML = '';
-            currentSessionId = null;
-            updateSessionBadge();
-        }
-    }
-
-    function toggleAdminPanel(forceOpen) {
-        const shouldOpen = typeof forceOpen === 'boolean'
-            ? forceOpen
-            : assistantAdmin.classList.contains('hidden');
-        assistantAdmin.classList.toggle('hidden', !shouldOpen);
-        toggleAdminBtn.textContent = shouldOpen ? '收起助手维护' : '展开助手维护';
-    }
-
-    assistantForm.addEventListener('submit', async event => {
-        event.preventDefault();
-
-        const assistantId = assistantIdInput.value.trim();
-        const payload = {
-            assistantCode: assistantCodeInput.value.trim(),
-            assistantName: assistantNameInput.value.trim(),
-            assistantDesc: assistantDescInput.value.trim(),
-            assistantKind: normalizeAssistantKind(assistantKindInput.value),
-            sortOrder: Number(assistantSortInput.value || 0),
-            systemPrompt: assistantPromptInput.value.trim(),
-            enabled: assistantEnabledInput.checked ? 1 : 0,
-            isDefault: assistantDefaultInput.checked ? 1 : 0
-        };
-
-        try {
-            if (assistantId) {
-                await fetchJson(`/assistants/${assistantId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                resetAssistantForm();
-                setFormMessage('助手已更新', 'success');
-            } else {
-                await fetchJson('/assistants', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                resetAssistantForm();
-                setFormMessage('助手已创建', 'success');
-            }
-
-            await loadAssistants();
-            await validateUserId();
-        } catch (error) {
-            setFormMessage(error.message, 'error');
-        }
-    });
-
-    assistantResetBtn.addEventListener('click', () => resetAssistantForm());
-
-    assistantCodeInput.addEventListener('input', () => applySuggestedPrompt(false));
-    assistantKindInput.addEventListener('input', () => applySuggestedPrompt(false));
-    assistantKindInput.addEventListener('blur', () => {
-        assistantKindInput.value = normalizeAssistantKind(assistantKindInput.value);
-    });
-
-    toggleAdminBtn.addEventListener('click', () => toggleAdminPanel());
-
-    chatForm.addEventListener('submit', async event => {
-        event.preventDefault();
-
+    async function continueConversation() {
         const message = messageInput.value.trim();
-        const userId = userIdInput.value.trim();
-        if (!message || !userId || !currentSessionId || !currentAssistantCode) {
+        if (!message) {
+            setStatus('先输入需求内容再继续。', 'error');
             return;
         }
 
-        if (chatContainer.textContent.includes('当前会话下还没有')) {
-            chatContainer.innerHTML = '';
-        }
-
-        appendMessage('user', message);
-        messageInput.value = '';
-
-        const aiBubble = appendMessage('ai', '思考中...');
-        let fullText = '';
+        sendBtn.disabled = true;
+        docBtn.disabled = true;
+        setStatus('AI 正在整理当前需求并生成下一轮追问...');
 
         try {
-            const url = `/streamingAssistant?userId=${encodeURIComponent(userId)}&sessionId=${currentSessionId}&message=${encodeURIComponent(message)}&assistantCode=${encodeURIComponent(currentAssistantCode)}`;
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(await parseErrorMessage(response));
-            }
-            if (!response.body) {
-                throw new Error('服务未返回可读数据流');
-            }
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            aiBubble.innerHTML = '';
-            let buffer = '';
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) {
-                    break;
-                }
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-
-                for (const line of lines) {
-                    const trimmed = line.trim();
-                    if (!trimmed.startsWith('data:')) {
-                        continue;
-                    }
-
-                    const data = trimmed.replace(/^data:\s?/, '').replace(/\\n/g, '\n');
-                    fullText += data;
-                    aiBubble.innerHTML = `${marked.parse(preprocessMarkdown(fullText))}<span class="typing-cursor"></span>`;
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                }
-            }
-
-            if (buffer.startsWith('data:')) {
-                fullText += buffer.replace(/^data:\s?/, '').replace(/\\n/g, '\n');
-            }
-
-            aiBubble.innerHTML = marked.parse(preprocessMarkdown(fullText || ''));
+            const draft = await fetchJson('/api/requirement-workshop/conversation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sessionId: currentSessionId,
+                    message
+                })
+            });
+            renderDraft(draft);
+            messageInput.value = '';
+            setStatus('已更新当前理解和追问。', 'success');
         } catch (error) {
-            console.error(error);
-            aiBubble.innerHTML = `
-                <div style="padding:14px 16px; border-radius:14px; border:1px solid rgba(248, 113, 113, 0.35); background:rgba(127, 29, 29, 0.18); color:#fecaca;">
-                    <strong>系统错误:</strong> ${escapeHtml(error.message)}
-                </div>
-            `;
+            setStatus(error.message, 'error');
+        } finally {
+            sendBtn.disabled = false;
+            docBtn.disabled = false;
         }
-    });
-
-    newChatBtn.addEventListener('click', async () => {
-        try {
-            await createNewSession();
-        } catch (error) {
-            console.error('创建会话失败:', error);
-        }
-    });
-
-    userIdInput.addEventListener('input', () => {
-        validateUserId();
-    });
-
-    async function initialize() {
-        resetAssistantForm();
-        toggleAdminPanel(false);
-        await loadAssistants();
-        updateSessionBadge();
-        renderEmptyState();
-        await validateUserId();
     }
 
-    initialize();
+    async function generateDocument() {
+        if (!currentSessionId) {
+            setStatus('会话尚未初始化。', 'error');
+            return;
+        }
+
+        docBtn.disabled = true;
+        sendBtn.disabled = true;
+        setStatus('正在整理研发文档...');
+
+        try {
+            const draft = await fetchJson(`/api/requirement-workshop/sessions/${encodeURIComponent(currentSessionId)}/document`, {
+                method: 'POST'
+            });
+            renderDraft(draft);
+            setStatus('研发文档已生成，可继续补充需求后再次生成。', 'success');
+        } catch (error) {
+            setStatus(error.message, 'error');
+        } finally {
+            docBtn.disabled = false;
+            sendBtn.disabled = false;
+        }
+    }
+
+    sendBtn.addEventListener('click', continueConversation);
+    docBtn.addEventListener('click', generateDocument);
+    newSessionBtn.addEventListener('click', createSession);
+
+    messageInput.addEventListener('keydown', event => {
+        if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+            continueConversation();
+        }
+    });
+
+    createSession().catch(error => {
+        console.error(error);
+        setStatus(`初始化失败：${error.message}`, 'error');
+    });
 </script>
 </body>
 </html>
